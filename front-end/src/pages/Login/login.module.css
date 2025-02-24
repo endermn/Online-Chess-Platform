@@ -1,0 +1,49 @@
+.main {
+    background-color: #282828;
+    min-height: 100vh;
+    color: white;
+}
+
+.mainContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 100px;
+}
+
+.main .control::placeholder {
+    color: #a9a9a9;
+}
+
+.main .control {
+    color: white;
+}
+
+.main .submit {
+    background-color: #D1323E;
+    border-color: #D1323E;
+}
+
+.navBar {
+    padding: 50px;
+    padding-top: 20px;
+    padding-bottom: 0px;
+}
+
+.navBar .back:hover {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.back:hover {
+    text-decoration: underline;
+}
+
+.back {
+    transition: color 0.2s ease-in-out, text-decoration 0.2s ease-in-out;
+}
+
+/* const pageBackground = '#282828';
+const primaryTextColor = '#FFFFFF';
+const buttonColor = '#D1323E';
+const buttonTextColor = '#FFFFFF'; */

@@ -1,0 +1,26 @@
+.statisticsCard {
+    text-align: center;
+    padding: 20px;
+}
+
+.statisticsIcon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #eee;
+}
+
+.statisticsTitle {
+    font-size: 1rem;
+    color: #ccc;
+}
+
+.statisticsValue {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.darkGreyBackground {
+    background-color: #333;
+    color: white;
+    border: none;
+}

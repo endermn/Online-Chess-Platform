@@ -1,0 +1,54 @@
+.main { 
+    background-color: #161616;
+    color: white; 
+    min-height: 100vh; 
+    padding: 30px;
+    padding-top: 0px;
+} 
+.navBar {
+    display: flex;
+}
+
+.navBar > .name {
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+.navBar > .loginRegister {
+    display: flex;
+    justify-content: end;
+    align-self: flex-end;
+}
+
+.navBar .login {
+    margin-right: 10px;
+    border-radius: 25px;
+    padding: 5px 20px;
+}
+
+.navBar .register {
+    border-radius: 25px;
+    padding: 5px 20px;
+    color: black;
+}
+
+.mainContainer {
+    background-color: #2B2B2B;
+    border-radius: 25px;
+    height: 90vh;
+}
+
+.discoverHeader {
+    font-size: 48;
+    font-weight: bold;
+    width: 80%;
+    margin-bottom: 40px;
+}
+
+.mainContainer .start {
+    color: black;
+    margin-top: 100px;
+    border-radius: 25px;
+    padding: 10px 30px;
+    font-size: 1.2em;
+}

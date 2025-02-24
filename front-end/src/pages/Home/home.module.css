@@ -1,0 +1,71 @@
+
+.homeContainer {
+    background-color: #1C1C1C;
+    color: white;
+    min-height: 100vh;
+}
+
+.sidebar {
+    padding: 20px 0;
+    background-color: #202020; 
+    border-right: 1px solid #111;
+}
+
+.profileSidebar {
+    border-radius: 25px;
+    height: 95vh;
+}
+
+.profileImage {
+    align-self: center;
+    margin-bottom: 10px;
+    width: 50px;
+    height: 50px;
+}
+
+.profileName {
+    font-size: 14px;
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.profileEmail {
+    display: block;
+    color: gray;
+}
+
+.logOut {
+    margin-top: auto;
+}
+
+.sidebarDivider {
+    border-color: gray;
+}
+
+.mainContent {
+    padding: 20px;
+}
+
+.homeNavbar {
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.cardRow {
+    margin-top: 20px;
+}
+
+.gameCard {
+    position: relative;
+    max-width: 600px;
+}
+
+.playCardTitle {
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.playButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
