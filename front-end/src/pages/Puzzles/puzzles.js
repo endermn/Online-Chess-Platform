@@ -14,6 +14,8 @@ function PuzzlesPage() {
 		rating: [1000, 1500, 800, 100],
 	}
 
+	const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
   return (
 
 		<div className={styles.homeContainer}>
@@ -22,7 +24,7 @@ function PuzzlesPage() {
 					<NavSidebar profile={mockProfile}/>
 					{/* Main Content */}
 					<Col sm={9} md={10} className={styles.mainContent}>
-						<Chessboard initialFen={"1r2r2k/1p1n3R/p1qp2pB/6Pn/P1Pp/3B4/1P2PQ1K/5R b - - 0 1"}/>
+						<Chessboard className={styles.chessboard} fen={fen}/>
 					</Col>
 				</Row>
 			</Container>

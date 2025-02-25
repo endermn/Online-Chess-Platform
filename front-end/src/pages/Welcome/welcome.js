@@ -20,7 +20,7 @@ const Welcome = () => {
 				<Nav className="mr-auto">
 					<Nav.Link href="home">Home</Nav.Link>
 					<Nav.Link href="news">News</Nav.Link>
-					<Nav.Link href="play">Play</Nav.Link>
+					<Nav.Link href="home">Play</Nav.Link>
 					<Nav.Link href="puzzles">Puzzles</Nav.Link>
 				</Nav>
 				<Nav className="ms-auto">

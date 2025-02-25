@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Navbar, Nav, Row, Col, Image} from 'react-bootstrap';
-import styles from './profile.module.css'; // Import the CSS module
+import styles from './profile.module.css'; 
 import StatisticsCard from '../../components/statisticsCard/statisticsCard.js'
 import RatingCard from '../../components/ratingCard/ratingCard.js';
 import NavSidebar from '../../components/navSidebar/navSidebar.js';
