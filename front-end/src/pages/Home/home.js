@@ -10,14 +10,6 @@ import {
 	Button,
 } from 'react-bootstrap';
 
-import {
-	FaHome,
-	FaUserCircle,
-	FaPuzzlePiece,
-	FaNewspaper,
-	FaSignOutAlt,
-	FaEdit,
-} from 'react-icons/fa';
 
 import styles from './home.module.css'; 
 import bulletImage from "../../assets/bullet.jpg"

@@ -38,6 +38,7 @@ const parseFEN = (fen) => {
       }
     }
   }
+
   return board;
 };
 
@@ -55,20 +56,23 @@ const generatePieceStyles = (fen) => {
     }
   }));
 
-  console.log(board);
   return boardwithstyles;
 };
 
 const Chessboard = ({ fen, squareSize = 50 }) => {
   const boardSize = 8;
   const pieces = generatePieceStyles(fen);
+
+  const handleClickEvent = (piece) => {
+    console.log(piece)
+  } 
   
   return (
-    <div className="container mt-5">
+    <div className="container">
       <div className="row">
-        <div className="col-md-8">
+        <div className="col d-flex justify-content-center align-items-center">
           <div 
-            className={styles.chessboard} 
+            className={`${styles.chessboard} align-self-center`} 
             style={{ 
               width: `${squareSize * 8}px`, 
               height: `${squareSize * 8}px` 
@@ -87,6 +91,7 @@ const Chessboard = ({ fen, squareSize = 50 }) => {
                         width: `${squareSize}px`, 
                         height: `${squareSize}px` 
                       }}
+                      onClick={() => handleClickEvent(piece)}
                     >
                       {piece && (
                         <div 
