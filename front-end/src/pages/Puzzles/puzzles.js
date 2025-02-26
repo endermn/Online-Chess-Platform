@@ -20,6 +20,10 @@ function PuzzlesPage() {
 		index: 100,
 		solution: "Qa4",
 	}
+
+	// For testing only
+	// puzzle.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 	const turn = puzzle.fen.includes("w") ? "White to play" : "Black to play";
 
 	const [answer, setAnswer] = useState(false);
