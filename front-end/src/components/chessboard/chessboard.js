@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './chessboard.module.css';
 import piecesImage from '../../assets/pieces.png';
-import { Chess } from 'chess.js'; // Import chess.js
+import { Chess } from 'chess.js';
 
 const getSquareColor = (row, col) => {
   return (row + col) % 2 === 0 ? 'white' : 'black';
@@ -60,19 +60,33 @@ const posToSquare = (pos) => {
   return files[pos.x] + ranks[pos.y];
 };
 
-const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", squareSize = 50, onMove }) => {
+const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", squareSize = 50, onMove, isPuzzle }) => {
   const [game, setGame] = useState(null);
   const [boardPieces, setBoardPieces] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [highlightedSquares, setHighlightedSquares] = useState([]);
   const [legalMoves, setLegalMoves] = useState([]);
+  const [feedback, setFeedback] = useState(null);
+  const initialFenRef = useRef(fen);
   
   // Initialize chess game
   useEffect(() => {
     const chessGame = new Chess(fen);
     setGame(chessGame);
     setBoardPieces(convertChessJsBoard(chessGame));
+    initialFenRef.current = fen;
+    setFeedback(null);
   }, [fen]);
+  
+  // Reset the board to initial position
+  const resetBoard = () => {
+    const chessGame = new Chess(initialFenRef.current);
+    setGame(chessGame);
+    setBoardPieces(convertChessJsBoard(chessGame));
+    setSelectedPiece(null);
+    setHighlightedSquares([]);
+    setLegalMoves([]);
+  };
   
   const boardSize = 8;
   const piecesWithStyles = generatePieceStyles(boardPieces);
@@ -80,6 +94,13 @@ const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
   const handleSquareClick = (row, col, piece) => {
     // No game instance yet
     if (!game) return;
+    
+    // If there's feedback showing, clear it and reset on click
+    if (feedback && feedback.type === 'incorrect') {
+      setFeedback(null);
+      resetBoard();
+      return;
+    }
     
     const squareName = posToSquare({ x: col, y: row });
     
@@ -153,13 +174,38 @@ const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
           
           // Call onMove callback if provided
           if (onMove) {
-            onMove({
+            const moveResult = onMove({
               piece: selectedPiece.piece,
               from: selectedPiece.position,
               to: { x: col, y: row },
               fen: game.fen(),
               move: move
             });
+
+            
+            // Set feedback based on move result
+            if (isPuzzle && !moveResult) {
+              setFeedback({
+                type: 'incorrect',
+                message: 'Incorrect move! Try again.'
+              });
+              // Don't reset immediately to allow the user to see their mistake
+              setTimeout(() => {
+                // Only reset if feedback is still showing the same error
+                // (this prevents resetting if user clicked again to dismiss)
+                setFeedback(prev => {
+                  if (prev && prev.type === 'incorrect') {
+                    return null;
+                  }
+                  return prev;
+                });
+              }, 100000000);
+            } else if (isPuzzle && moveResult){
+              setFeedback({
+                type: 'correct',
+                message: 'Correct move!'
+              });
+            }
           }
         }
       } catch (e) {
@@ -182,7 +228,7 @@ const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
   };
   
   return (
-    <div className="container">
+    <div className="position-relative">
       <div className="row">
         <div className="col d-flex justify-content-center align-items-center">
           <div 
@@ -250,6 +296,36 @@ const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
           </div>
         </div>
       </div>
+      
+      {feedback && (
+        <div 
+          className={`${styles.feedback} ${feedback.type === 'correct' ? styles.correct : styles.incorrect}`}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            backgroundColor: feedback.type === 'correct' ? 'rgba(0, 128, 0, 0.8)' : 'rgba(255, 0, 0, 0.8)',
+            color: 'white',
+            fontWeight: 'bold',
+            zIndex: 10,
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            if (feedback.type === 'incorrect') {
+              setFeedback(null);
+              resetBoard();
+            } else {
+              setFeedback(null);
+            }
+          }}
+        >
+          {feedback.message}
+        </div>
+      )}
+      
       <div className="mt-3 text-center">
         {game && (game.turn() === 'w' ? "White's turn" : "Black's turn")}
       </div>

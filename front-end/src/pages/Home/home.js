@@ -32,7 +32,7 @@ function HomePage() {
 	const historyElements = [];
 	for(let i = 0; i < mockProfile.history.length; i++) {
 		const item = mockProfile.history[i];
-		historyElements.push(<HistoryCard index={i} item={item}/>);
+		historyElements.push(<HistoryCard key={i} index={i} item={item}/>);
 	}
 	return (
 		<div className={styles.homeContainer}>
@@ -54,7 +54,7 @@ function HomePage() {
 									/>
 									<Card.ImgOverlay>
 										<Card.Title className={styles.playCardTitle} >Bullet</Card.Title>
-										<Button variant="danger" className={styles.playButton}>Play</Button>
+										<Button href="play/bullet" variant="danger" className={styles.playButton}>Play</Button>
 									</Card.ImgOverlay>
 								</Card>
 
@@ -67,7 +67,7 @@ function HomePage() {
 									/>
 									<Card.ImgOverlay>
 										<Card.Title className={styles.playCardTitle} >Blitz</Card.Title>
-										<Button variant="danger" className={styles.playButton}>Play</Button>
+										<Button href="play/blitz" variant="danger" className={styles.playButton}>Play</Button>
 									</Card.ImgOverlay>
 								</Card>
 							</Col>
@@ -81,7 +81,7 @@ function HomePage() {
 									/>
 									<Card.ImgOverlay>
 										<Card.Title className={styles.playCardTitle} >Rapid</Card.Title>
-										<Button variant="danger" className={styles.playButton}>Play</Button>
+										<Button href="play/rapid" variant="danger" className={styles.playButton}>Play</Button>
 									</Card.ImgOverlay>
 								</Card>
 
@@ -94,7 +94,7 @@ function HomePage() {
 									/>
 									<Card.ImgOverlay>
 										<Card.Title className={styles.playCardTitle} >Classical</Card.Title>
-										<Button variant="danger" className={styles.playButton}>Play</Button>
+										<Button href="play/classical" variant="danger" className={styles.playButton}>Play</Button>
 									</Card.ImgOverlay>
 								</Card>
 
