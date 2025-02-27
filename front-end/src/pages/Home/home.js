@@ -11,7 +11,7 @@ import {
 } from 'react-bootstrap';
 
 
-import styles from './home.module.css'; 
+import styles from './home.module.css';
 import bulletImage from "../../assets/bullet.jpg"
 import blitzImage from "../../assets/blitz.png"
 import rapidImage from "../../assets/rapid.webp"
@@ -26,22 +26,25 @@ function HomePage() {
 		email: "peshotoshev@gmail.com",
 		profilePicture: "https://checkshorturl.com/img/long-short-url-pros-cons.jpg",
 		history: ["win", "win", "loss", "loss", "win", "win", "win", "win", "win", "win", "win", "win"],
-		rating: [1000, 1500, 800, 100],
+		rating: [1000, 1500, 800, 1000],
+		totalGames: 100,
+		totalGamesWon: 23,
+		totalGamesLost: 72,
 	}
 
 	const historyElements = [];
-	for(let i = 0; i < mockProfile.history.length; i++) {
+	for (let i = 0; i < mockProfile.history.length; i++) {
 		const item = mockProfile.history[i];
-		historyElements.push(<HistoryCard key={i} index={i} item={item}/>);
+		historyElements.push(<HistoryCard key={i} index={i} item={item} />);
 	}
 	return (
 		<div className={styles.homeContainer}>
 			<Container fluid>
 				<Row>
-					<NavSidebar profile={mockProfile}/>
+					<NavSidebar profile={mockProfile} />
 					{/* Main Content */}
 					<Col sm={9} md={10} className={styles.mainContent}>
-						<h1 style={{fontSize: "32px"}}>Home</h1>
+						<h1 style={{ fontSize: "32px" }}>Home</h1>
 
 						<Row className={styles.cardRow}>
 							<Col >
@@ -100,11 +103,11 @@ function HomePage() {
 
 							</Col>
 						</Row>
-						<h2 style={{fontSize: '24px'}}>History</h2>
+						<h2 style={{ fontSize: '24px' }}>History</h2>
 						<Container>
 							<Row>
 								<Col>
-									<div style={{overflowY: 'scroll', maxHeight: '400px'}}>
+									<div style={{ overflowY: 'scroll', maxHeight: '400px' }}>
 										{historyElements}
 									</div>
 								</Col>

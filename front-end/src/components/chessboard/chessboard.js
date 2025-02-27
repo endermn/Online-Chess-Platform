@@ -283,8 +283,8 @@ const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
                           width: piece ? '85%' : '30%',
                           height: piece ? '85%' : '30%',
                           borderRadius: piece ? '0' : '50%',
-                          border: piece ? '3px solid rgba(0, 255, 0, 0.7)' : 'none',
-                          backgroundColor: piece ? 'transparent' : 'rgba(0, 255, 0, 0.5)',
+                          border: piece ? '3px solid rgba(82, 178, 227, 0.7)' : 'none',
+                          backgroundColor: piece ? 'transparent' : 'rgba(88, 151, 214, 0.5)',
                           pointerEvents: 'none'
                         }} />
                       )}
@@ -326,7 +326,7 @@ const Chessboard = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
         </div>
       )}
       
-      <div className="mt-3 text-center">
+      <div className="mt-3 text-center" style={{color: 'white'}}>
         {game && (game.turn() === 'w' ? "White's turn" : "Black's turn")}
       </div>
     </div>

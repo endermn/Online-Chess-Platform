@@ -1,36 +1,278 @@
+/* navSidebar.module.css */
 .sidebar {
-    padding: 20px 0;
-    background-color: #202020; 
-    border-right: 1px solid #111;
+    height: 100vh;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .profileSidebar {
-    border-radius: 25px;
-    height: 95vh;
+    background: linear-gradient(180deg, #1e2a38 0%, #2c3e50 100%);
+    height: 100vh;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.15);
+}
+
+.sidebarHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.profileImageContainer {
+    position: relative;
+    margin-bottom: 0.75rem;
 }
 
 .profileImage {
-    align-self: center;
-    margin-bottom: 10px;
-    width: 50px;
-    height: 50px;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 3px solid #2ecc71;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.profileImage:hover {
+    transform: scale(1.05);
+}
+
+.statusIndicator {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background-color: #2ecc71;
+    border-radius: 50%;
+    border: 2px solid #1e2a38;
+    bottom: 5px;
+    right: 5px;
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 .profileName {
-    font-size: 14px;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
+.playerStatusBadge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statsContainer {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.ratingContainer {
     display: flex;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
 }
 
-.profileEmail {
-    display: block;
-    color: gray;
+.ratingLabel {
+    color: #bdc3c7;
+    font-size: 0.8rem;
 }
 
-.logOut {
-    margin-top: auto;
+.ratingValue {
+    color: #e67e22;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
-.sidebarDivider {
-    border-color: gray;
+.winRateContainer {
+    margin-bottom: 1rem;
+}
+
+.winRateHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.winRateLabel {
+    color: #bdc3c7;
+    font-size: 0.8rem;
+}
+
+.winRateValue {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.winRateProgress {
+    height: 6px;
+    border-radius: 3px;
+}
+
+.gameHistoryContainer {
+    margin-top: 0.75rem;
+}
+
+.gameHistoryLabel {
+    color: #bdc3c7;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.gameHistoryItems {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.gameHistoryItem {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.gameWin {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
+.gameLoss {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.navigationContainer {
+    width: 100%;
+    margin-bottom: auto;
+}
+
+.navLabel {
+    color: #bdc3c7;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
+}
+
+.navLinks {
+    width: 100%;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.25rem;
+    transition: all 0.2s ease;
+    color: #ecf0f1 !important;
+    position: relative;
+}
+
+.navLink:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.activeLink {
+    background-color: rgba(46, 204, 113, 0.2);
+    border-left: 3px solid #2ecc71;
+}
+
+.activeLink:hover {
+    background-color: rgba(46, 204, 113, 0.3);
+}
+
+.navIcon {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+    min-width: 20px;
+}
+
+.navBadge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.footerContainer {
+    width: 100%;
+    margin-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+}
+
+.logoContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.chessLogo {
+    color: #2ecc71;
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.logoText {
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.logoutLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e74c3c !important;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    transition: all 0.2s ease;
+}
+
+.logoutLink:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.logoutIcon {
+    margin-right: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .profileName {
+        font-size: 0.95rem;
+    }
+
+    .navLink {
+        padding: 0.6rem 0.75rem;
+    }
 }
