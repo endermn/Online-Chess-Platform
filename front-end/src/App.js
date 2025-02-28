@@ -10,6 +10,7 @@ import RegisterPage from './pages/Register/register';
 import ProfilePage from './pages/Profile/profile';
 import PuzzlesPage from './pages/Puzzles/puzzles';
 import NewsPage from './pages/News/news';
+import BoardEditor from './pages/BoardEditor/boardeditor';
 
 function App() {
 
@@ -23,6 +24,7 @@ function App() {
 					<Route path='profile' element = {<ProfilePage />} />
 					<Route path='puzzles' element = {<PuzzlesPage />} />
 					<Route path='news' element = {<NewsPage />} />
+					<Route path='boardeditor' element = {<BoardEditor />} />
 					<Route path='login' element = {<Login />} />
 					<Route path='signup' element = {<RegisterPage />} />
 					</Route>

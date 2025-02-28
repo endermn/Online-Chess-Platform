@@ -1,71 +1,338 @@
-
+/* home.module.css */
 .homeContainer {
-    background-color: #1C1C1C;
-    color: white;
+    background-color: #1a2234;
     min-height: 100vh;
-}
-
-.sidebar {
-    padding: 20px 0;
-    background-color: #202020; 
-    border-right: 1px solid #111;
-}
-
-.profileSidebar {
-    border-radius: 25px;
-    height: 95vh;
-}
-
-.profileImage {
-    align-self: center;
-    margin-bottom: 10px;
-    width: 50px;
-    height: 50px;
-}
-
-.profileName {
-    font-size: 14px;
-    display: flex;
-    margin-bottom: 10px;
-}
-
-.profileEmail {
-    display: block;
-    color: gray;
-}
-
-.logOut {
-    margin-top: auto;
-}
-
-.sidebarDivider {
-    border-color: gray;
+    color: #e9ecef;
 }
 
 .mainContent {
-    padding: 20px;
+    padding: 2rem;
+    background-color: #232c3d;
+    min-height: 100vh;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
 }
 
-.homeNavbar {
-    border-radius: 15px;
-    margin-bottom: 20px;
+.headerSection {
+    margin-bottom: 2rem;
 }
 
-.cardRow {
-    margin-top: 20px;
+.headerSection h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #e9ecef;
+}
+
+.statsCards {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.statCard {
+    flex: 1;
+    min-width: 250px;
+    background-color: #2c374a;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s;
+}
+
+.statCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.statCard .card-body {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+}
+
+.statIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    margin-right: 1rem;
+    background-color: #3a4458;
+    color: #64b5f6;
+}
+
+.statInfo {
+    flex: 1;
+}
+
+.statInfo h3 {
+    font-size: 0.875rem;
+    color: #adb5bd;
+    margin-bottom: 0.5rem;
+}
+
+.statInfo h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #e9ecef;
+}
+
+.winRateProgress {
+    height: 6px;
+    background-color: #3a4458;
+}
+
+.miniStats {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.gameModes {
+    margin-bottom: 2rem;
+}
+
+.gameModes h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: #e9ecef;
 }
 
 .gameCard {
-    position: relative;
-    max-width: 600px;
+    background-color: #2c374a;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
 }
 
-.playCardTitle {
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+.gameCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.gameCardImageContainer {
+    position: relative;
+    height: 120px;
+    overflow: hidden;
+}
+
+.gameCardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.gameCard:hover .gameCardImage {
+    transform: scale(1.1);
+}
+
+.gameCardOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.gameCardHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.gameTypeIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    margin-right: 0.75rem;
+    color: white;
+}
+
+.gameTypeDescription {
+    color: #adb5bd;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.ratingBadge {
+    background-color: #3a4458;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: #e9ecef;
 }
 
 .playButton {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    transition: opacity 0.2s;
+    border: none;
+}
+
+.playButton:hover {
+    opacity: 0.9;
+}
+
+.historySection {
+    margin-top: 2rem;
+}
+
+.historyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.historyHeader h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e9ecef;
+    margin-bottom: 0;
+}
+
+.historyContainer {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.historyContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.historyContainer::-webkit-scrollbar-track {
+    background: #3a4458;
+    border-radius: 10px;
+}
+
+.historyContainer::-webkit-scrollbar-thumb {
+    background: #64b5f6;
+    border-radius: 10px;
+}
+
+/* historyCard.module.css */
+.historyCard {
+    background-color: #2c374a;
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.historyCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cardContent {
+    display: flex;
+    align-items: center;
+}
+
+.resultIndicator {
+    width: 6px;
+    height: 60px;
+    border-radius: 3px;
+    margin-right: 1rem;
+}
+
+.gameInfo {
+    flex: 1;
+}
+
+.gameHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.resultBadge {
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+}
+
+.gameType {
+    color: #adb5bd;
+    font-size: 0.875rem;
+}
+
+.gameDate {
+    margin-left: auto;
+    color: #adb5bd;
+    font-size: 0.875rem;
+}
+
+.gameDetails {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.playerInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #e9ecef;
+}
+
+.opponentName {
+    font-weight: 500;
+}
+
+.gameStats {
+    display: flex;
+    gap: 1rem;
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #adb5bd;
+    font-size: 0.875rem;
+}
+
+.ratingChange {
+    font-weight: 600;
+}
+
+.viewButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #3a4458;
+    color: #adb5bd;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.viewButton:hover {
+    background-color: #64b5f6;
+    color: white;
 }
