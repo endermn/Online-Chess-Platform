@@ -134,9 +134,6 @@ function HomePage() {
                       </div>
                       <Card.Body>
                         <div className={styles.gameCardHeader}>
-                          <div className={styles.gameTypeIcon} style={{ backgroundColor: game.color }}>
-                            {game.icon}
-                          </div>
                           <Card.Title>{game.name}</Card.Title>
                         </div>
                         <Card.Text className={styles.gameTypeDescription}>
