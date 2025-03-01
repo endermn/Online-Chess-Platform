@@ -1,5 +1,5 @@
-import React from 'react';
-import { Container, Row, Col, Image, Card } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Image, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import styles from './profile.module.css';
 import StatisticsCard from '../../components/statisticsCard/statisticsCard.js';
 import RatingCard from '../../components/ratingCard/ratingCard.js';
@@ -18,7 +18,12 @@ function ProfilePage() {
     totalGamesLost: 72,
   };
 
-  // Dark theme color palette
+  // State for interactive elements
+  const [activeRatingCard, setActiveRatingCard] = useState(null);
+  const [historyHover, setHistoryHover] = useState(null);
+  const [expandedStats, setExpandedStats] = useState(false);
+
+  // Dark theme color palette (unchanged)
   const darkTheme = {
     background: {
       main: '#1a1e2e',
@@ -34,7 +39,7 @@ function ProfilePage() {
     gradient: 'linear-gradient(135deg, #2b3653, #1c2538)'
   };
 
-  // CSS for custom components
+  // CSS for custom components with added interactivity
   const customStyles = {
     mainContainer: {
       backgroundColor: darkTheme.background.main,
@@ -52,7 +57,11 @@ function ProfilePage() {
       border: 'none',
       boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
       padding: '25px',
-      marginBottom: '25px'
+      marginBottom: '25px',
+      transition: 'box-shadow 0.3s ease'
+    },
+    profileCardHover: {
+      boxShadow: '0 12px 24px rgba(0, 0, 0, 0.25)'
     },
     profileHeader: {
       display: 'flex',
@@ -63,7 +72,13 @@ function ProfilePage() {
       width: '120px',
       height: '120px',
       border: `4px solid ${darkTheme.border}`,
-      boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)'
+      boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
+      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+      cursor: 'pointer'
+    },
+    profileImageHover: {
+      transform: 'scale(1.05)',
+      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)'
     },
     userName: {
       color: darkTheme.text.primary,
@@ -77,7 +92,9 @@ function ProfilePage() {
       fontWeight: '600',
       marginBottom: '20px',
       position: 'relative',
-      paddingBottom: '10px'
+      paddingBottom: '10px',
+      cursor: 'pointer',
+      display: 'inline-block'
     },
     titleBar: {
       content: '""',
@@ -87,7 +104,11 @@ function ProfilePage() {
       width: '50px',
       height: '3px',
       background: darkTheme.text.accent,
-      borderRadius: '3px'
+      borderRadius: '3px',
+      transition: 'width 0.3s ease'
+    },
+    titleBarHover: {
+      width: '100%'
     },
     ratingContainer: {
       display: 'flex',
@@ -96,8 +117,94 @@ function ProfilePage() {
     },
     statsRow: {
       marginTop: '15px'
+    },
+    ratingCard: {
+      backgroundColor: darkTheme.background.accent,
+      border: 'none',
+      borderRadius: '12px',
+      flex: '1',
+      minWidth: '200px',
+      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+      cursor: 'pointer'
+    },
+    ratingCardActive: {
+      transform: 'translateY(-10px)',
+      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)'
+    },
+    statCard: {
+      backgroundColor: darkTheme.background.accent,
+      border: 'none',
+      borderRadius: '12px',
+      height: '100%',
+      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+      cursor: 'pointer'
+    },
+    statCardHover: {
+      transform: 'translateY(-5px)',
+      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)'
+    },
+    historyBubble: {
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'white',
+      fontSize: '14px',
+      cursor: 'pointer',
+      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+    },
+    historyBubbleHover: {
+      transform: 'scale(1.15)',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'
+    },
+    winRateBar: {
+      height: '10px', 
+      backgroundColor: darkTheme.background.accent,
+      borderRadius: '5px',
+      overflow: 'hidden',
+      position: 'relative',
+      transition: 'height 0.3s ease',
+      cursor: 'pointer'
+    },
+    winRateBarHover: {
+      height: '15px'
+    },
+    winRateFill: {
+      height: '100%',
+      background: 'linear-gradient(to right, #3a7bd5, #3498db)',
+      borderRadius: '5px',
+      transition: 'transform 0.5s ease-out',
+      transformOrigin: 'left'
     }
   };
+
+  // Function to toggle section expansion
+  const toggleStatsExpansion = () => {
+    setExpandedStats(!expandedStats);
+  };
+
+  const [profileCardHover, setProfileCardHover] = useState(false);
+  const [profileImageHover, setProfileImageHover] = useState(false);
+  const [sectionTitleHover, setSectionTitleHover] = useState({
+    profile: false,
+    rating: false,
+    stats: false
+  });
+  const [winRateHover, setWinRateHover] = useState(false);
+  const [showWinRate, setShowWinRate] = useState(false);
+  const [statCardHover, setStatCardHover] = useState(null);
+
+  // Animation for win rate fill
+  React.useEffect(() => {
+    if (showWinRate) {
+      const winRateFill = document.getElementById('winRateFill');
+      if (winRateFill) {
+        winRateFill.style.transform = `scaleX(1)`;
+      }
+    }
+  }, [showWinRate]);
 
   return (
     <div style={customStyles.mainContainer}>
@@ -109,7 +216,14 @@ function ProfilePage() {
           {/* Main Content */}
           <Col xs={10} style={customStyles.content}>
             {/* Profile Card */}
-            <Card style={customStyles.profileCard}>
+            <Card 
+              style={{
+                ...customStyles.profileCard,
+                ...(profileCardHover ? customStyles.profileCardHover : {})
+              }}
+              onMouseEnter={() => setProfileCardHover(true)}
+              onMouseLeave={() => setProfileCardHover(false)}
+            >
               <Card.Body>
                 <Row>
                   <Col lg={4}>
@@ -117,7 +231,12 @@ function ProfilePage() {
                       <Image 
                         src={mockProfile.profilePicture} 
                         roundedCircle 
-                        style={customStyles.profileImage} 
+                        style={{
+                          ...customStyles.profileImage,
+                          ...(profileImageHover ? customStyles.profileImageHover : {})
+                        }}
+                        onMouseEnter={() => setProfileImageHover(true)}
+                        onMouseLeave={() => setProfileImageHover(false)}
                       />
                       <div>
                         <h2 style={customStyles.userName}>
@@ -133,16 +252,25 @@ function ProfilePage() {
                           color: darkTheme.text.secondary
                         }}>
                           <i className="bi bi-geo-alt"></i>
-                          <span>Chess Master</span>
                         </div>
                       </div>
                     </div>
                   </Col>
                   
                   <Col lg={8}>
-                    <h3 style={customStyles.sectionTitle}>
+                    <h3 
+                      style={{
+                        ...customStyles.sectionTitle,
+                        cursor: 'pointer'
+                      }}
+                      onMouseEnter={() => setSectionTitleHover({...sectionTitleHover, profile: true})}
+                      onMouseLeave={() => setSectionTitleHover({...sectionTitleHover, profile: false})}
+                    >
                       Game History
-                      <div style={customStyles.titleBar}></div>
+                      <div style={{
+                        ...customStyles.titleBar,
+                        ...(sectionTitleHover.profile ? customStyles.titleBarHover : {})
+                      }}></div>
                     </h3>
                     <div style={{ 
                       display: 'flex', 
@@ -151,22 +279,27 @@ function ProfilePage() {
                       marginBottom: '20px'
                     }}>
                       {mockProfile.history.map((result, index) => (
-                        <div 
-                          key={index} 
-                          style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: result === 'win' ? '#2a623d' : '#733a3a',
-                            color: 'white',
-                            fontSize: '14px'
-                          }}
+                        <OverlayTrigger
+                          key={index}
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`tooltip-${index}`}>
+                              Game {index + 1}: {result === 'win' ? 'Victory' : 'Defeat'}
+                            </Tooltip>
+                          }
                         >
-                          {result === 'win' ? 'W' : 'L'}
-                        </div>
+                          <div 
+                            style={{
+                              ...customStyles.historyBubble,
+                              backgroundColor: result === 'win' ? '#2a623d' : '#733a3a',
+                              ...(historyHover === index ? customStyles.historyBubbleHover : {})
+                            }}
+                            onMouseEnter={() => setHistoryHover(index)}
+                            onMouseLeave={() => setHistoryHover(null)}
+                          >
+                            {result === 'win' ? 'W' : 'L'}
+                          </div>
+                        </OverlayTrigger>
                       ))}
                     </div>
                     
@@ -178,19 +311,25 @@ function ProfilePage() {
                       }}>
                         Win rate
                       </h4>
-                      <div style={{ 
-                        height: '10px', 
-                        backgroundColor: darkTheme.background.accent,
-                        borderRadius: '5px',
-                        overflow: 'hidden',
-                        position: 'relative' 
-                      }}>
-                        <div style={{ 
-                          width: `${(mockProfile.totalGamesWon / mockProfile.totalGames) * 100}%`, 
-                          height: '100%',
-                          background: 'linear-gradient(to right, #3a7bd5, #3498db)',
-                          borderRadius: '5px'
-                        }}></div>
+                      <div 
+                        style={{ 
+                          ...customStyles.winRateBar,
+                          ...(winRateHover ? customStyles.winRateBarHover : {})
+                        }}
+                        onMouseEnter={() => {
+                          setWinRateHover(true);
+                          setShowWinRate(true);
+                        }}
+                        onMouseLeave={() => setWinRateHover(false)}
+                      >
+                        <div 
+                          id="winRateFill"
+                          style={{ 
+                            ...customStyles.winRateFill,
+                            width: `${(mockProfile.totalGamesWon / mockProfile.totalGames) * 100}%`,
+                            transform: showWinRate ? 'scaleX(1)' : 'scaleX(0)'
+                          }}
+                        ></div>
                       </div>
                       <div style={{ 
                         display: 'flex', 
@@ -211,74 +350,42 @@ function ProfilePage() {
             {/* Rating Card */}
             <Card style={customStyles.profileCard}>
               <Card.Body>
-                <h3 style={customStyles.sectionTitle}>
+                <h3 
+                  style={customStyles.sectionTitle}
+                  onMouseEnter={() => setSectionTitleHover({...sectionTitleHover, rating: true})}
+                  onMouseLeave={() => setSectionTitleHover({...sectionTitleHover, rating: false})}
+                >
                   Rating
-                  <div style={customStyles.titleBar}></div>
+                  <div style={{
+                    ...customStyles.titleBar,
+                    ...(sectionTitleHover.rating ? customStyles.titleBarHover : {})
+                  }}></div>
                 </h3>
                 <div style={customStyles.ratingContainer}>
-                  <Card style={{ 
-                    backgroundColor: darkTheme.background.accent,
-                    border: 'none',
-                    borderRadius: '12px',
-                    flex: '1',
-                    minWidth: '200px'
-                  }}>
-                    <Card.Body>
-                      <h4 style={{ color: darkTheme.text.accent }}>Bullet</h4>
-                      <h2 style={{ color: darkTheme.text.primary, fontSize: '32px' }}>
-                        {mockProfile.rating[0]}
-                      </h2>
-                      <RatingCard title="Bullet" rating={mockProfile.rating[0]/30} />
-                    </Card.Body>
-                  </Card>
-                  
-                  <Card style={{ 
-                    backgroundColor: darkTheme.background.accent,
-                    border: 'none',
-                    borderRadius: '12px',
-                    flex: '1',
-                    minWidth: '200px'
-                  }}>
-                    <Card.Body>
-                      <h4 style={{ color: darkTheme.text.accent }}>Blitz</h4>
-                      <h2 style={{ color: darkTheme.text.primary, fontSize: '32px' }}>
-                        {mockProfile.rating[1]}
-                      </h2>
-                      <RatingCard title="Blitz" rating={mockProfile.rating[1]/30} />
-                    </Card.Body>
-                  </Card>
-                  
-                  <Card style={{ 
-                    backgroundColor: darkTheme.background.accent,
-                    border: 'none',
-                    borderRadius: '12px',
-                    flex: '1',
-                    minWidth: '200px'
-                  }}>
-                    <Card.Body>
-                      <h4 style={{ color: darkTheme.text.accent }}>Rapid</h4>
-                      <h2 style={{ color: darkTheme.text.primary, fontSize: '32px' }}>
-                        {mockProfile.rating[2]}
-                      </h2>
-                      <RatingCard title="Rapid" rating={mockProfile.rating[2]/30} />
-                    </Card.Body>
-                  </Card>
-                  
-                  <Card style={{ 
-                    backgroundColor: darkTheme.background.accent,
-                    border: 'none',
-                    borderRadius: '12px',
-                    flex: '1',
-                    minWidth: '200px'
-                  }}>
-                    <Card.Body>
-                      <h4 style={{ color: darkTheme.text.accent }}>Classical</h4>
-                      <h2 style={{ color: darkTheme.text.primary, fontSize: '32px' }}>
-                        {mockProfile.rating[3]}
-                      </h2>
-                      <RatingCard title="Classical" rating={mockProfile.rating[3]/30} />
-                    </Card.Body>
-                  </Card>
+                  {[
+                    {title: "Bullet", index: 0},
+                    {title: "Blitz", index: 1},
+                    {title: "Rapid", index: 2},
+                    {title: "Classical", index: 3}
+                  ].map((item) => (
+                    <Card 
+                      key={item.title}
+                      style={{ 
+                        ...customStyles.ratingCard,
+                        ...(activeRatingCard === item.index ? customStyles.ratingCardActive : {})
+                      }}
+                      onMouseEnter={() => setActiveRatingCard(item.index)}
+                      onMouseLeave={() => setActiveRatingCard(null)}
+                    >
+                      <Card.Body>
+                        <h4 style={{ color: darkTheme.text.accent }}>{item.title}</h4>
+                        <h2 style={{ color: darkTheme.text.primary, fontSize: '32px' }}>
+                          {mockProfile.rating[item.index]}
+                        </h2>
+                        <RatingCard title={item.title} rating={mockProfile.rating[item.index]/30} />
+                      </Card.Body>
+                    </Card>
+                  ))}
                 </div>
               </Card.Body>
             </Card>
@@ -286,127 +393,63 @@ function ProfilePage() {
             {/* Statistics Card */}
             <Card style={customStyles.profileCard}>
               <Card.Body>
-                <h3 style={customStyles.sectionTitle}>
+                <h3 
+                  style={customStyles.sectionTitle}
+                  onClick={toggleStatsExpansion}
+                  onMouseEnter={() => setSectionTitleHover({...sectionTitleHover, stats: true})}
+                  onMouseLeave={() => setSectionTitleHover({...sectionTitleHover, stats: false})}
+                >
                   Total Statistics
-                  <div style={customStyles.titleBar}></div>
+                  <div style={{
+                    ...customStyles.titleBar,
+                    ...(sectionTitleHover.stats ? customStyles.titleBarHover : {})
+                  }}></div>
                 </h3>
                 <Row style={customStyles.statsRow}>
-                  <Col md={4}>
-                    <Card style={{ 
-                      backgroundColor: darkTheme.background.accent,
-                      border: 'none',
-                      borderRadius: '12px',
-                      height: '100%',
-                      transition: 'transform 0.2s',
-                      ':hover': {
-                        transform: 'translateY(-5px)'
-                      }
-                    }}>
-                      <Card.Body className="d-flex flex-column align-items-center justify-content-center p-4">
-                        <div style={{ 
-                          fontSize: '36px', 
-                          color: darkTheme.text.accent,
-                          marginBottom: '15px'
-                        }}>
-                          <i className="bi bi-check-lg"></i>
-                        </div>
-                        <h3 style={{ 
-                          fontSize: '42px', 
-                          fontWeight: 'bold',
-                          color: darkTheme.text.primary,
-                          marginBottom: '10px'
-                        }}>
-                          {mockProfile.totalGames}
-                        </h3>
-                        <p style={{ 
-                          color: darkTheme.text.secondary,
-                          fontSize: '16px',
-                          textAlign: 'center',
-                          margin: 0
-                        }}>
-                          Total Games Played
-                        </p>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                  
-                  <Col md={4}>
-                    <Card style={{ 
-                      backgroundColor: darkTheme.background.accent,
-                      border: 'none',
-                      borderRadius: '12px',
-                      height: '100%',
-                      transition: 'transform 0.2s',
-                      ':hover': {
-                        transform: 'translateY(-5px)'
-                      }
-                    }}>
-                      <Card.Body className="d-flex flex-column align-items-center justify-content-center p-4">
-                        <div style={{ 
-                          fontSize: '36px', 
-                          color: '#3a7bd5',
-                          marginBottom: '15px'
-                        }}>
-                          <i className="bi bi-trophy-fill"></i>
-                        </div>
-                        <h3 style={{ 
-                          fontSize: '42px', 
-                          fontWeight: 'bold',
-                          color: darkTheme.text.primary,
-                          marginBottom: '10px'
-                        }}>
-                          {mockProfile.totalGamesWon}
-                        </h3>
-                        <p style={{ 
-                          color: darkTheme.text.secondary,
-                          fontSize: '16px',
-                          textAlign: 'center',
-                          margin: 0
-                        }}>
-                          Games Won
-                        </p>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                  
-                  <Col md={4}>
-                    <Card style={{ 
-                      backgroundColor: darkTheme.background.accent,
-                      border: 'none',
-                      borderRadius: '12px',
-                      height: '100%',
-                      transition: 'transform 0.2s',
-                      ':hover': {
-                        transform: 'translateY(-5px)'
-                      }
-                    }}>
-                      <Card.Body className="d-flex flex-column align-items-center justify-content-center p-4">
-                        <div style={{ 
-                          fontSize: '36px', 
-                          color: '#e74c3c',
-                          marginBottom: '15px'
-                        }}>
-                          <i className="bi bi-x-lg"></i>
-                        </div>
-                        <h3 style={{ 
-                          fontSize: '42px', 
-                          fontWeight: 'bold',
-                          color: darkTheme.text.primary,
-                          marginBottom: '10px'
-                        }}>
-                          {mockProfile.totalGamesLost}
-                        </h3>
-                        <p style={{ 
-                          color: darkTheme.text.secondary,
-                          fontSize: '16px',
-                          textAlign: 'center',
-                          margin: 0
-                        }}>
-                          Games Lost
-                        </p>
-                      </Card.Body>
-                    </Card>
-                  </Col>
+                  {[
+                    {title: "Total Games Played", value: mockProfile.totalGames, icon: "bi-check-lg", color: darkTheme.text.accent, index: 0},
+                    {title: "Games Won", value: mockProfile.totalGamesWon, icon: "bi-trophy-fill", color: "#3a7bd5", index: 1},
+                    {title: "Games Lost", value: mockProfile.totalGamesLost, icon: "bi-x-lg", color: "#e74c3c", index: 2}
+                  ].map((stat) => (
+                    <Col md={4} key={stat.index}>
+                      <Card 
+                        style={{ 
+                          ...customStyles.statCard,
+                          ...(statCardHover === stat.index ? customStyles.statCardHover : {})
+                        }}
+                        onMouseEnter={() => setStatCardHover(stat.index)}
+                        onMouseLeave={() => setStatCardHover(null)}
+                      >
+                        <Card.Body className="d-flex flex-column align-items-center justify-content-center p-4">
+                          <div style={{ 
+                            fontSize: '36px', 
+                            color: stat.color,
+                            marginBottom: '15px',
+                            transition: 'transform 0.3s ease',
+                            transform: statCardHover === stat.index ? 'scale(1.2)' : 'scale(1)'
+                          }}>
+                            <i className={`bi ${stat.icon}`}></i>
+                          </div>
+                          <h3 style={{ 
+                            fontSize: '42px', 
+                            fontWeight: 'bold',
+                            color: darkTheme.text.primary,
+                            marginBottom: '10px'
+                          }}>
+                            {stat.value}
+                          </h3>
+                          <p style={{ 
+                            color: darkTheme.text.secondary,
+                            fontSize: '16px',
+                            textAlign: 'center',
+                            margin: 0
+                          }}>
+                            {stat.title}
+                          </p>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
                 </Row>
               </Card.Body>
             </Card>
