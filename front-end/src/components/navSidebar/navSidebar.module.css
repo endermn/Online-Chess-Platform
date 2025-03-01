@@ -16,6 +16,19 @@
     align-items: center;
     justify-content: flex-start;
     box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Add subtle sidebar entrance animation */
+@keyframes slideIn {
+    from {
+        transform: translateX(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .sidebarHeader {
@@ -24,11 +37,17 @@
     align-items: center;
     width: 100%;
     margin-bottom: 1.5rem;
+    animation: slideIn 0.4s ease-out;
 }
 
 .profileImageContainer {
     position: relative;
     margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.profileImageContainer:hover {
+    transform: translateY(-2px);
 }
 
 .profileImage {
@@ -37,11 +56,12 @@
     object-fit: cover;
     border: 3px solid #2ecc71;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .profileImage:hover {
     transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .statusIndicator {
@@ -53,6 +73,20 @@
     border: 2px solid #1e2a38;
     bottom: 5px;
     right: 5px;
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(46, 204, 113, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+    }
 }
 
 .profileInfo {
@@ -60,6 +94,16 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .profileName {
@@ -68,6 +112,11 @@
     font-size: 1.1rem;
     margin-bottom: 0.25rem;
     text-align: center;
+    transition: all 0.2s ease;
+}
+
+.profileName:hover {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 .playerStatusBadge {
@@ -75,6 +124,12 @@
     padding: 0.25rem 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.playerStatusBadge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .statsContainer {
@@ -83,6 +138,15 @@
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    animation: slideIn 0.5s ease-out 0.1s both;
+}
+
+.statsContainer:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
 }
 
 .ratingContainer {
@@ -90,21 +154,30 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.ratingContainer:hover .ratingValue {
+    transform: scale(1.1);
+    color: #f39c12;
 }
 
 .ratingLabel {
     color: #bdc3c7;
     font-size: 0.8rem;
+    transition: all 0.2s ease;
 }
 
 .ratingValue {
     color: #e67e22;
     font-weight: 700;
     font-size: 1.1rem;
+    transition: all 0.3s ease;
 }
 
 .winRateContainer {
     margin-bottom: 1rem;
+    transition: all 0.2s ease;
 }
 
 .winRateHeader {
@@ -116,27 +189,41 @@
 .winRateLabel {
     color: #bdc3c7;
     font-size: 0.8rem;
+    transition: color 0.2s ease;
 }
 
 .winRateValue {
     color: white;
     font-weight: 600;
     font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.winRateContainer:hover .winRateValue {
+    transform: scale(1.1);
 }
 
 .winRateProgress {
     height: 6px;
     border-radius: 3px;
+    transition: all 0.4s ease;
+    overflow: hidden;
+}
+
+.winRateProgress .progress-bar {
+    transition: width 1s ease-in-out;
 }
 
 .gameHistoryContainer {
     margin-top: 0.75rem;
+    transition: all 0.2s ease;
 }
 
 .gameHistoryLabel {
     color: #bdc3c7;
     font-size: 0.8rem;
     margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
 }
 
 .gameHistoryItems {
@@ -153,6 +240,11 @@
     justify-content: center;
     font-size: 0.7rem;
     font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.gameHistoryItem:hover {
+    transform: scale(1.2);
 }
 
 .gameWin {
@@ -161,15 +253,26 @@
     border: 1px solid #2ecc71;
 }
 
+.gameWin:hover {
+    background-color: rgba(46, 204, 113, 0.4);
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+}
+
 .gameLoss {
     background-color: rgba(231, 76, 60, 0.2);
     color: #e74c3c;
     border: 1px solid #e74c3c;
 }
 
+.gameLoss:hover {
+    background-color: rgba(231, 76, 60, 0.4);
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
+}
+
 .navigationContainer {
     width: 100%;
     margin-bottom: auto;
+    animation: slideIn 0.6s ease-out 0.2s both;
 }
 
 .navLabel {
@@ -179,6 +282,7 @@
     letter-spacing: 1px;
     margin-bottom: 0.75rem;
     padding-left: 0.5rem;
+    transition: all 0.2s ease;
 }
 
 .navLinks {
@@ -191,13 +295,30 @@
     padding: 0.75rem 1rem;
     border-radius: 8px;
     margin-bottom: 0.25rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     color: #ecf0f1 !important;
     position: relative;
+    overflow: hidden;
+}
+
+.navLink:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+    transition: all 0.6s ease;
+}
+
+.navLink:hover:before {
+    left: 100%;
 }
 
 .navLink:hover {
     background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(3px);
 }
 
 .activeLink {
@@ -207,18 +328,26 @@
 
 .activeLink:hover {
     background-color: rgba(46, 204, 113, 0.3);
+    transform: translateX(5px);
 }
 
 .navIcon {
     margin-right: 0.75rem;
     font-size: 1.1rem;
     min-width: 20px;
+    transition: all 0.3s ease;
+}
+
+.navLink:hover .navIcon {
+    transform: scale(1.2);
+    color: #2ecc71;
 }
 
 .navBadge {
     margin-left: auto;
     font-size: 0.65rem;
     padding: 0.25rem 0.5rem;
+    transition: all 0.3s ease;
 }
 
 .footerContainer {
@@ -226,6 +355,7 @@
     margin-top: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-top: 1rem;
+    animation: slideIn 0.7s ease-out 0.3s both;
 }
 
 .logoContainer {
@@ -233,18 +363,21 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 1rem;
+    transition: all 0.3s ease;
 }
 
 .chessLogo {
     color: #2ecc71;
     font-size: 1.2rem;
     margin-right: 0.5rem;
+    transition: all 0.3s ease;
 }
 
 .logoText {
     color: white;
     font-weight: 600;
     font-size: 0.95rem;
+    transition: all 0.3s ease;
 }
 
 .logoutLink {
@@ -255,16 +388,47 @@
     padding: 0.75rem;
     border-radius: 8px;
     border: 1px solid rgba(231, 76, 60, 0.3);
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.logoutLink:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(231,76,60,0) 0%, rgba(231,76,60,0.1) 50%, rgba(231,76,60,0) 100%);
+    transition: all 0.6s ease;
+}
+
+.logoutLink:hover:before {
+    left: 100%;
 }
 
 .logoutLink:hover {
     background-color: rgba(231, 76, 60, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .logoutIcon {
     margin-right: 0.5rem;
+    transition: all 0.3s ease;
 }
+
+.logoutLink:hover .logoutIcon {
+    transform: translateX(-3px) rotate(-10deg);
+}
+
+/* Staggered animation for nav links */
+.navLink:nth-child(1) { animation: slideIn 0.4s ease-out 0.3s both; }
+.navLink:nth-child(2) { animation: slideIn 0.4s ease-out 0.4s both; }
+.navLink:nth-child(3) { animation: slideIn 0.4s ease-out 0.5s both; }
+.navLink:nth-child(4) { animation: slideIn 0.4s ease-out 0.6s both; }
+.navLink:nth-child(5) { animation: slideIn 0.4s ease-out 0.7s both; }
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
