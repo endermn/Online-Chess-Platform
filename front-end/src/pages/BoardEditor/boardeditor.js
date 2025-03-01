@@ -15,8 +15,9 @@ import {
   X,
   ArrowLeftRight
 } from 'lucide-react';
-import Chessboard from '../../components/chessboard/chessboard';
+import ChessGame from '../../components/chess/chess';
 import styles from './boardEditor.module.css';
+import Chessboard from '../../components/chessboard/chessboard';
 
 const pieces = [
   { id: 'K', name: 'White King', color: 'w' },
@@ -305,10 +306,9 @@ const BoardEditor = () => {
             <Card className={styles.boardCard}>
               <Card.Body>
                 <div className={styles.boardContainer}>
-                  <Chessboard 
+                  <Chessboard
                     fen={currentFen} 
                     squareSize={squareSize}
-                    onSquareClick={handleBoardClick}
                   />
                 </div>
               </Card.Body>

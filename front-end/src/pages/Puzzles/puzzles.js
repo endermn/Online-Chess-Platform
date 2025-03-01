@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Button, Alert, Card } from 'react-bootstrap';
-import Chessboard from '../../components/chessboard/chessboard';
 import styles from './puzzles.module.css';
 import NavSidebar from '../../components/navSidebar/navSidebar';
+import ChessGame from '../../components/chess/chess';
 
 function PuzzlesPage() {
   const mockProfile = {
@@ -147,7 +147,7 @@ function PuzzlesPage() {
                         <i className="fas fa-check-circle mr-2"></i> Solved!
                       </div>
                     )}
-                    <Chessboard
+                    <ChessGame
                       squareSize={80}
                       fen={puzzle.fen}
                       onMove={onMove}
