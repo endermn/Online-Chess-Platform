@@ -35,7 +35,7 @@ export default function HistoryCard({index, item, gameType = "Blitz", opponent =
           <div className={styles.gameInfo}>
             <div className={styles.gameHeader}>
               <Badge bg={badgeVariant} className={styles.resultBadge}>{resultText}</Badge>
-              <span className={styles.gameType}>{gameType} Game</span>
+              <span className={styles.gameType}> {gameType} Game </span>
               <span className={styles.gameDate}>{date}</span>
             </div>
             
@@ -59,9 +59,6 @@ export default function HistoryCard({index, item, gameType = "Blitz", opponent =
             </div>
           </div>
           
-          <div className={styles.viewButton}>
-            <ChevronRight size={20} />
-          </div>
         </div>
       </Card.Body>
     </Card>

@@ -160,7 +160,6 @@ function HomePage() {
             <div className={styles.historySection}>
               <div className={styles.historyHeader}>
                 <h2>Recent Games</h2>
-                <Button variant="outline-primary" size="sm">View All</Button>
               </div>
               <div className={styles.historyContainer}>
                 {mockProfile.history.map((item, index) => (
