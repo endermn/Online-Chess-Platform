@@ -1,0 +1,159 @@
+openapi: 3.0.0
+info:
+  title: User Authentication and Profile API
+  version: 1.0.0
+servers:
+    - url: /api
+paths:
+  /signup:
+    post:
+      summary: Register a new user
+      tags:
+        - Public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+                - email
+                - password
+              properties:
+                fullName:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "securePassword123"
+      responses:
+        '201':
+          description: User registered successfully, JWT set in HTTP-only cookie.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: JWT token in HTTP-only cookie.
+        '400':
+          description: Bad request, invalid input.
+        '500':
+          description: Internal server error.
+
+  /login:
+    post:
+      summary: Authenticate a user
+      tags:
+        - Public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "securePassword123"
+      responses:
+        '200':
+          description: User authenticated successfully, JWT set in HTTP-only cookie.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: JWT token in HTTP-only cookie.
+        '401':
+          description: Unauthorized, invalid credentials.
+        '500':
+          description: Internal server error.
+
+  /logout:
+    post:
+      summary: Logout a user
+      tags:
+        - Public
+      responses:
+        '200':
+          description: User logged out successfully, JWT cookie cleared.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Cleared JWT cookie.
+
+  /profile:
+    get:
+      summary: Get user profile
+      tags:
+        - Protected
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fullName:
+                    type: string
+                    example: "John Doe"
+                  email:
+                    type: string
+                    format: email
+                    example: "john.doe@example.com"
+                  # Add other profile fields as needed.
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '500':
+          description: Internal server error.
+
+  /user/stats:
+    get:
+      summary: Get user statistics
+      tags:
+        - Protected
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User statistics retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  loginCount:
+                    type: integer
+                    example: 10
+                  lastLogin:
+                    type: string
+                    format: date-time
+                    example: "2023-10-27T10:00:00Z"
+                  # add other relevant statistics
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '500':
+          description: Internal server error.
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt
