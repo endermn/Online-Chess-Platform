@@ -1,0 +1,41 @@
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0  # Use a specific, stable version.  Update regularly.
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.56.2  # Use a specific, stable version
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint
+        args: [--fix] # autofix!
+
+  - repo: https://github.com/mvdan/gofumpt
+    rev: v0.6.0 # Use a specific, stable version
+    hooks:
+      - id: gofumpt
+        name: gofumpt
+        args: [-l -w -extra] # -l: list files that would be changed, -w: write to file, -extra: extra formatting rules
+        files: .*\.go$
+
+  - repo: https://github.com/kisielk/errcheck
+    rev: v1.6.3  # Use a specific, stable version
+    hooks:
+    - id: errcheck
+      name: errcheck
+      args: ["-asserts", "-blank", "-ignore", "io/ioutil:^Read.*"]  #ignore common error return patterns
+
+  - repo: https://github.com/jumanjiman/go-staticcheck
+    rev: v0.3.5 # Use a specific version.  Update regularly!
+    hooks:
+      - id: staticcheck
+        name: staticcheck
+        entry: staticcheck
+        language: golang
+        types: [go]
