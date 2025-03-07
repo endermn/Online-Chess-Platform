@@ -1,15 +1,18 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/endermn/Thesis/backend/auth-api/internal/repository/postgres"
 )
 
 // Config holds all application configuration
+
 type Config struct {
-	ServerAddress   string
-	DatabaseURL     string
+	DBConfig        postgres.Config
 	Environment     string
 	LogLevel        string
 	RequestTimeout  time.Duration
@@ -17,12 +20,22 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	requestTimeout, _ := strconv.Atoi(getEnv("REQUEST_TIMEOUT_SECONDS", "30"))
-	shutdownTimeout, _ := strconv.Atoi(getEnv("SHUTDOWN_TIMEOUT_SECONDS", "30"))
+	requestTimeout, err := strconv.Atoi(getEnv("REQUEST_TIMEOUT_SECONDS", "30"))
+	if err != nil {
+		log.Printf("Invalid REQUEST_TIMEOUT_SECONDS value: %s", err)
+	}
+	shutdownTimeout, err := strconv.Atoi(getEnv("SHUTDOWN_TIMEOUT_SECONDS", "30"))
+	if err != nil {
+		log.Printf("Invalid SHUTDOWN_TIMEOUT_SECONDS value: %s", err)
+	}
 
 	return &Config{
-		ServerAddress:   getEnv("SERVER_ADDRESS", ":3000"),
-		DatabaseURL:     getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/myapp?sslmode=disable"),
+		DBConfig: postgres.Config{
+			User:     getEnv("POSTGRES_USER", "postgres"),
+			Password: getEnv("POSTGRES_PASSWORD", "postgres"),
+			Addr:     getEnv("DB_ADDR", "localhost:3000"),
+			DBName:   getEnv("POSTGRES_DB", "myapp"),
+		},
 		Environment:     getEnv("ENVIRONMENT", "development"),
 		LogLevel:        getEnv("LOG_LEVEL", "info"),
 		RequestTimeout:  time.Duration(requestTimeout) * time.Second,
