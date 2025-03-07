@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (a *Application) setupRoutes() *gin.Engine {
+func setupRoutes() *gin.Engine {
 	router := gin.Default()
 
 	router.Use()
