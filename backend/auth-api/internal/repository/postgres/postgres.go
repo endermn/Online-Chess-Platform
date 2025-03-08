@@ -19,11 +19,6 @@ type Config struct {
 	DBName   string
 }
 
-// Init initializes the global PostgreSQL database connection using GORM and applies schema migrations.
-//
-// It constructs a connection string from the provided configuration and attempts to open the database connection.
-// Upon a successful connection, it runs game-specific migrations via models.MigrateGames and auto-migrates the
-// User, Statistic, and News models. Errors encountered during any step are logged and returned.
 func Init(config Config) error {
 	connStr := fmt.Sprintf(
 		"postgres://%s:%s@%s/%s?sslmode=disable",
