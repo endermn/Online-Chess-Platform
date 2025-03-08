@@ -13,6 +13,9 @@ import (
 	"github.com/endermn/Thesis/backend/auth-api/pkg/config"
 )
 
+// main loads configuration, initializes the application, and starts an HTTP server listening on port 3000.
+// It runs the server in a separate goroutine and awaits SIGINT or SIGTERM signals to initiate a graceful shutdown,
+// allowing up to 30 seconds for ongoing operations to complete before the server exits.
 func main() {
 	// Load configuration
 	cfg, err := config.Load()
