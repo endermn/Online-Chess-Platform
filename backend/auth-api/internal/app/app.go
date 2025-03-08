@@ -13,6 +13,7 @@ type Application struct {
 	router *gin.Engine
 }
 
+// Init initializes an Application instance using the provided configuration. It establishes a PostgreSQL connection with the database settings in config.DBConfig and sets up the HTTP routes. It returns the Application instance if successful or an error if the database initialization fails.
 func Init(config *config.Config) (*Application, error) {
 	// Initialize database, services and handlers
 

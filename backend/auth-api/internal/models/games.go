@@ -31,7 +31,7 @@ type Game struct {
 	User User `gorm:"foreignKey:UserID"`
 }
 
-// Migrate handles creating the necessary enum types and game table
+// MigrateGames creates PostgreSQL ENUM types for opponent_type, game_status, and game_state if they do not exist, and then auto migrates the Game model to the database. It returns an error if any step in the creation or migration process fails.
 func MigrateGames(db *gorm.DB) error {
 	// Create enums if they do not exist
 	if err := db.Exec(`DO $$

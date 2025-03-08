@@ -20,6 +20,10 @@ type Config struct {
 	ShutdownTimeout time.Duration
 }
 
+// Load loads the application configuration from environment variables and an optional "postgres.env" file.
+// It retrieves settings for database connection, environment, logging, and timeout durations,
+// using default values when the corresponding environment variables are missing or invalid.
+// Timeout conversion errors and failures to load the "postgres.env" file are logged, while defaults are applied.
 func Load() (*Config, error) {
 	requestTimeout, err := strconv.Atoi(getEnv("REQUEST_TIMEOUT_SECONDS", "30"))
 	if err != nil {
