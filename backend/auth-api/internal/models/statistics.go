@@ -11,5 +11,5 @@ type Statistic struct {
 	GamesLost       int
 	UserID          uint64
 
-	Statistic User `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	User User `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
