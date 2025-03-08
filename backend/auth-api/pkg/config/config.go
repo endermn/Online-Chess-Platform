@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/endermn/Thesis/backend/auth-api/internal/repository/postgres"
+	"github.com/joho/godotenv"
 )
 
 // Config holds all application configuration
@@ -29,11 +30,18 @@ func Load() (*Config, error) {
 		log.Printf("Invalid SHUTDOWN_TIMEOUT_SECONDS value: %s", err)
 	}
 
+	pwd, _ := os.Getwd()
+	err = godotenv.Load(pwd + "/postgres.env")
+	if err != nil {
+		log.Printf("Warning: Error loading postgres.env: %s", err)
+		log.Printf("Current directory: %s", pwd)
+	}
+
 	return &Config{
 		DBConfig: postgres.Config{
 			User:     getEnv("POSTGRES_USER", "postgres"),
 			Password: getEnv("POSTGRES_PASSWORD", "postgres"),
-			Addr:     getEnv("DB_ADDR", "localhost:3000"),
+			Addr:     getEnv("DB_ADDR", "localhost:5432"),
 			DBName:   getEnv("POSTGRES_DB", "myapp"),
 		},
 		Environment:     getEnv("ENVIRONMENT", "development"),

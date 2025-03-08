@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/endermn/Thesis/backend/auth-api/internal/repository/postgres"
 	"github.com/endermn/Thesis/backend/auth-api/pkg/config"
 	"github.com/gin-gonic/gin"
 )
@@ -15,10 +16,10 @@ type Application struct {
 func Init(config *config.Config) (*Application, error) {
 	// Initialize database, services and handlers
 
-	// err := postgres.Init(config.DBConfig)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err := postgres.Init(config.DBConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	app := &Application{
 		config: config,

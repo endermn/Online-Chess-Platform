@@ -27,7 +27,7 @@ func main() {
 
 	// Set up HTTP server
 	server := &http.Server{
-		Addr:         cfg.DBConfig.Addr,
+		Addr:         ":3000",
 		Handler:      application.Handler(),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
