@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/endermn/Thesis/backend/auth-api/internal/models"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,14 +27,19 @@ func Init(config Config) error {
 		config.Addr,
 		config.DBName,
 	)
-	var err error
-	DB, err = gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	DB, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		log.Printf("Failed to connect to database %s on address %s: %s", config.DBName, config.Addr, err)
 		return err
 	}
 
-	err = DB.AutoMigrate()
+	err = models.MigrateGames(DB)
+	if err != nil {
+		log.Printf("Failed to migrate games: %s", err)
+		return err
+	}
+
+	err = DB.AutoMigrate(&models.User{}, &models.Statistic{}, &models.News{})
 	if err != nil {
 		log.Printf("Auto migration failed: %v", err)
 		return err

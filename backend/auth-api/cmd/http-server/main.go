@@ -27,7 +27,7 @@ func main() {
 
 	// Set up HTTP server
 	server := &http.Server{
-		Addr:         cfg.DBConfig.Addr,
+		Addr:         ":3000",
 		Handler:      application.Handler(),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -36,7 +36,7 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("Starting server on %s", cfg.DBConfig.Addr)
+		log.Printf("Starting server on %s", server.Addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
 		}
