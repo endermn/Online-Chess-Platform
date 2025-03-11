@@ -27,7 +27,8 @@ func Init(config Config) error {
 		config.Addr,
 		config.DBName,
 	)
-	DB, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	var err error
+	DB, err = gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		log.Printf("Failed to connect to database %s on address %s: %s", config.DBName, config.Addr, err)
 		return err
@@ -44,6 +45,7 @@ func Init(config Config) error {
 		log.Printf("Auto migration failed: %v", err)
 		return err
 	}
+	log.Printf("Successfully connected to db")
 
 	return nil
 }
