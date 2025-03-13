@@ -20,7 +20,6 @@ type SignupParams struct {
 
 func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var params SignupParams
 		err := c.BindJSON(&params)
 		if err != nil {
@@ -59,7 +58,7 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		token, err := middleware.CreateToken(user.Email)
+		token, err := middleware.CreateToken(user.PublicID)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to create token for user: %s", user.Email)
 		}

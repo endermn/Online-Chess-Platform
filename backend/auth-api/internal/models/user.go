@@ -6,7 +6,7 @@ import (
 
 type User struct {
 	ID              uint64 `gorm:"primaryKey"`
-	PublicID        string `gorm:"index"`
+	PublicID        string `gorm:"uniqueIndex"`
 	FullName        string `gorm:"not null;default:null"`
 	Email           string `gorm:"not null;default:null"`
 	PasswordHash    string `gorm:"not null; default:null"`

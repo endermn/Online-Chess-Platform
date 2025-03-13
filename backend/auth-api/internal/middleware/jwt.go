@@ -25,7 +25,6 @@ func VerifyToken(tokenString string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
-
 	if err != nil {
 		return err
 	}
@@ -38,7 +37,6 @@ func VerifyToken(tokenString string) error {
 }
 
 func CreateToken(email string) (string, error) {
-
 	token := jwt.NewWithClaims(jwt.SigningMethodES256,
 		jwt.MapClaims{
 			"username": email,

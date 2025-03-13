@@ -15,7 +15,6 @@ import (
 var DB *gorm.DB
 
 func TestDBSetup(t *testing.T) {
-
 	config := ps.Config{
 		User:     "postgres",
 		Password: "4294",
