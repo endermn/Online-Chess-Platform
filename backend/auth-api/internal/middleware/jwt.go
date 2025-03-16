@@ -1,27 +1,52 @@
 package middleware
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/endermn/Thesis/backend/auth-api/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var key *ecdsa.PrivateKey
-
-func GenerateKey() {
-	k, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		log.Printf("Issue while generating key")
+func ExtractJWTPayload(tokenString string) (map[string]interface{}, error) {
+	// Split the token into its parts: header.payload.signature
+	parts := strings.Split(tokenString, ".")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid token format")
 	}
-	key = k
+
+	// Decode the payload (second part)
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON payload
+	var claims map[string]interface{}
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return nil, err
+	}
+
+	return claims, nil
 }
 
 func VerifyToken(tokenString string) error {
+	privateKeyPEM, err := os.ReadFile("../../../../private.pem")
+	if err != nil {
+		log.Printf(os.Getwd())
+		return err
+	}
+
+	key, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
+	if err != nil {
+		return err
+	}
+
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
@@ -36,11 +61,22 @@ func VerifyToken(tokenString string) error {
 	return nil
 }
 
-func CreateToken(email string) (string, error) {
+func CreateToken(user models.User) (string, error) {
+	privateKeyPEM, err := os.ReadFile("../../../../private.pem")
+	if err != nil {
+		log.Printf(os.Getwd())
+		return "", err
+	}
+
+	key, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
+	if err != nil {
+		return "", err
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodES256,
 		jwt.MapClaims{
-			"username": email,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+			"email": user.Email,
+			"id":    user.ID,
+			"exp":   time.Now().Add(time.Hour * 24).Unix(),
 		})
 
 	tokenString, err := token.SignedString(key)

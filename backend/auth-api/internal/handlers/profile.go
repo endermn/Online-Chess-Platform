@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func UserStatsHandler(db *gorm.DB) gin.HandlerFunc {
+func ProfileHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		token, err := c.Cookie("sess_token")
@@ -26,26 +26,19 @@ func UserStatsHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		idValue, ok := claims["id"]
-		if !ok {
-			c.String(http.StatusUnauthorized, "Invalid token: missing user ID")
-			return
-		}
-		user_id, ok := idValue.(float64)
-		if !ok {
-			c.String(http.StatusUnauthorized, "Invalid token: user ID is not a string")
-			return
-		}
+		email := claims["email"].(string)
 
-		var user_stats models.Statistic
+		var user models.User
 
-		err = db.Take(&user_stats, "user_id = ?", user_id).Error
+		err = db.Take(&user, "email = ?", email).Error
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Unexpected error occured")
 			return
 		}
 
-		c.JSON(http.StatusOK, user_stats)
+		user.PasswordHash = ""
+
+		c.JSON(http.StatusOK, user)
 	}
 
 }

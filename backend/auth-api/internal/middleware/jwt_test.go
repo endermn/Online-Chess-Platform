@@ -4,14 +4,16 @@ import (
 	"testing"
 
 	"github.com/endermn/Thesis/backend/auth-api/internal/middleware"
+	"github.com/endermn/Thesis/backend/auth-api/internal/models"
 )
 
 func TestCreateJWT(t *testing.T) {
-	username := "tosho@gmail.com"
-	middleware.GenerateKey()
-	tokenString, err := middleware.CreateToken(username)
+	testUser := models.User{
+		Email: "test@gmail.com",
+	}
+	tokenString, err := middleware.CreateToken(testUser)
 	if err != nil {
-		t.Errorf("Failed to create token for user %s", username)
+		t.Errorf("Failed to create token for user %s", testUser.Email)
 	}
 	t.Log(tokenString)
 }

@@ -36,6 +36,7 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 
 		if len(params.Password) < 8 {
 			c.String(http.StatusBadRequest, "Password should be at least 8 characters long")
+			return
 		}
 
 		hash, err := security.HashPassword(params.Password)
@@ -58,13 +59,13 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		token, err := middleware.CreateToken(user.PublicID)
+		token, err := middleware.CreateToken(user)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to create token for user: %s", user.Email)
 		}
-		c.SetCookie("user", token, 3600*24, "/", "localhost", false, true)
+		c.SetCookie("sess_token", token, 3600*24, "/", "localhost", false, true)
 
 		c.Header("Content-Type", "application/json")
-		c.String(http.StatusOK, "Cookie has been set")
+		c.String(http.StatusCreated, "Cookie has been set")
 	}
 }

@@ -45,10 +45,11 @@ func TestDBSetup(t *testing.T) {
 		t.Fatalf("Auto migration failed: %v", err)
 	}
 	log.Printf("Successfully connected to db")
+
 	var dbName string
 	err = DB.Raw("SELECT current_database()").Scan(&dbName).Error
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	fmt.Println("Connected to database:", dbName)
 }
