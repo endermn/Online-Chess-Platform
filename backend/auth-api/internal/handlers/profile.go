@@ -12,7 +12,6 @@ import (
 
 func ProfileHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		token, err := c.Cookie("sess_token")
 		if err != nil {
 			c.String(http.StatusUnauthorized, "failed to find cookie")
@@ -40,5 +39,4 @@ func ProfileHandler(db *gorm.DB) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, user)
 	}
-
 }
