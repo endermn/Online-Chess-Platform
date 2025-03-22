@@ -38,7 +38,7 @@ func Init(config Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = DB.AutoMigrate(&models.User{}, &models.Statistic{}, &models.News{})
+	err = DB.AutoMigrate(&models.User{}, &models.Statistic{}, &models.News{}, &models.Session{})
 	if err != nil {
 		log.Printf("Auto migration failed: %v", err)
 		return nil, err

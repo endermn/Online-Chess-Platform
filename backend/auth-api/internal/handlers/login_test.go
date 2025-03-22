@@ -30,7 +30,7 @@ func TestLoginHandler(t *testing.T) {
 		t.Fatalf("Failed to init postgres database: %s", err)
 	}
 
-	db.Exec("TRUNCATE games, statistics, users, news;")
+	db.Exec("TRUNCATE games, statistics, users, news, sessions;")
 
 	router := gin.Default()
 	router.POST("/login", handlers.LoginHandler(db))

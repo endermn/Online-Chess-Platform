@@ -5,6 +5,7 @@ import (
 
 	"github.com/endermn/Thesis/backend/auth-api/internal/models"
 	ps "github.com/endermn/Thesis/backend/auth-api/internal/repository/postgres"
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
@@ -33,13 +34,14 @@ func TestDBSetup(t *testing.T) {
 		t.Fatalf("Failed to connect to database: %s", err)
 	}
 
-	db.Exec("TRUNCATE games, statistics, users, news;")
+	db.Exec("TRUNCATE games, statistics, users, news, sessions;")
 
 	t.Run("Create User", func(t *testing.T) {
 		testUser := models.User{
 			Email:        "test@example.com",
 			FullName:     "Test User",
 			PasswordHash: "hashedpassword",
+			PublicID:     uuid.New().String(),
 		}
 
 		err = db.Create(&testUser).Error
@@ -81,7 +83,7 @@ func TestDBSetup(t *testing.T) {
 			testGame := models.Game{
 				UserID:         testUser.ID,
 				OpponentType:   OpponentTypeBot,
-				OpponentUserID: 0,
+				OpponentUserID: 1,
 				GameStatus:     GameStatusFinished,
 				GameState:      GameStateFailure,
 				GamePoints:     10,

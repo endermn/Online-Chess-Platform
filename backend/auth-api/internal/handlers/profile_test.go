@@ -28,7 +28,7 @@ func TestProfileHandler(t *testing.T) {
 		t.Fatalf("Failed to init postgres database: %s", err)
 	}
 
-	db.Exec("TRUNCATE games, statistics, users, news;")
+	db.Exec("TRUNCATE games, statistics, users, news, sessions;")
 
 	testUser := models.User{
 		Email:        "test@example.com",

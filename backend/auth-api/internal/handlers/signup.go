@@ -29,8 +29,14 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 		var user models.User
 
 		err = db.Take(&user, "email = ?", params.Email).Error
-		if err != gorm.ErrRecordNotFound {
+		if err == nil {
 			c.String(http.StatusBadRequest, "User already exists")
+			return
+		}
+
+		if err != gorm.ErrRecordNotFound {
+			log.Printf("Failed while looking up record: %v", err)
+			c.String(http.StatusInternalServerError, "Unexpected error")
 			return
 		}
 
