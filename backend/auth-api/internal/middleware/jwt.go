@@ -54,7 +54,6 @@ func VerifyToken(tokenString string) error {
 		}
 		return publicKey, nil
 	})
-
 	if err != nil {
 		return err
 	}
