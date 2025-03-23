@@ -1,8 +1,6 @@
 package app
 
 import (
-	"time"
-
 	"github.com/endermn/Thesis/backend/auth-api/internal/handlers"
 	"github.com/endermn/Thesis/backend/auth-api/internal/middleware"
 	"github.com/gin-gonic/gin"
@@ -12,9 +10,9 @@ import (
 func setupRoutes(db *gorm.DB) *gin.Engine {
 	router := gin.Default()
 
-	rateLimiter := middleware.NewRateLimiter(5, time.Minute)
+	// rateLimiter := middleware.NewRateLimiter(5, time.Minute)
 
-	router.Use(rateLimiter.RateLimitMiddleware())
+	// router.Use(rateLimiter.RateLimitMiddleware())
 
 	router.GET("/status", handlers.StatusHandler)
 	router.GET("/profile", handlers.ProfileHandler(db))
@@ -24,6 +22,7 @@ func setupRoutes(db *gorm.DB) *gin.Engine {
 	router.POST("/signup", handlers.SignupHandler(db))
 	router.POST("/login", handlers.LoginHandler(db))
 	router.POST("/logout", handlers.LogoutHandler)
+	router.GET("/game/create", middleware.AuthMiddleware(), handlers.GameHandler(db))
 
 	return router
 }

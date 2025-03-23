@@ -29,7 +29,6 @@ type Game struct {
 	GamePoints int `gorm:"not null;check:game_points > 0"`
 
 	User User `gorm:"foreignKey:UserID"`
-	// Opponent User `gorm:"foreignKey:OpponentUserID"`
 }
 
 func MigrateGames(db *gorm.DB) error {

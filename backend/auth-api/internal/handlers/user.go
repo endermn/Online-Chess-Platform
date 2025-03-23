@@ -25,7 +25,7 @@ func UserStatsHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		idValue, ok := claims["id"]
+		idValue, ok := claims["userID"]
 		if !ok {
 			c.String(http.StatusUnauthorized, "Invalid token: missing user ID")
 			return

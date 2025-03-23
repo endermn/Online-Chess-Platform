@@ -83,7 +83,7 @@ func TestDBSetup(t *testing.T) {
 			testGame := models.Game{
 				UserID:         testUser.ID,
 				OpponentType:   OpponentTypeBot,
-				OpponentUserID: 1,
+				OpponentUserID: testUser.ID,
 				GameStatus:     GameStatusFinished,
 				GameState:      GameStateFailure,
 				GamePoints:     10,

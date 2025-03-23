@@ -34,14 +34,14 @@ func TestLoginHandler(t *testing.T) {
 
 	router := gin.Default()
 	router.POST("/login", handlers.LoginHandler(db))
-	hash, err := security.HashPassword("12345")
+	hash, err := security.HashPassword("password123")
 	if err != nil {
 		t.Fatalf("error while hashing password")
 	}
 
 	user := models.User{
 		FullName:     "test",
-		Email:        "test@gmail.com",
+		Email:        "testuser@example.com",
 		PasswordHash: hash,
 		IsActive:     true,
 		CreatedAt:    time.Now(),
@@ -56,7 +56,7 @@ func TestLoginHandler(t *testing.T) {
 	jsonStr := fmt.Sprintf(`{
 		"email":"%s",
 		"password":"%s"
-	}`, user.Email, "12345")
+	}`, user.Email, "password123")
 
 	req := testutils.NewRequest(http.MethodPost, "/login", bytes.NewBufferString(jsonStr))
 

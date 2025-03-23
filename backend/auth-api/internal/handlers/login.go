@@ -42,6 +42,7 @@ func LoginHandler(db *gorm.DB) gin.HandlerFunc {
 		token, err := middleware.CreateToken(user)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to create token for user: %s", user.Email)
+			return
 		}
 		c.SetCookie("sess_token", token, 3600*24, "/", "localhost", false, true)
 
