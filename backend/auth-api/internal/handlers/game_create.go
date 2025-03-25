@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 
 	"github.com/endermn/Thesis/backend/auth-api/internal/models"
@@ -46,13 +47,13 @@ var gameManager = &GameManager{
 
 func GameHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, exists := c.Get("userID")
+		userIDString, exists := c.Get("userID")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
 			return
 		}
 
-		userIDValue := userID.(uint64)
+		userID := userIDString.(uint64)
 
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
@@ -74,16 +75,18 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			}
 
 			var sessionRecord models.Session
-			if err := db.FirstOrCreate(&sessionRecord, models.Session{
+			err := db.FirstOrCreate(&sessionRecord, models.Session{
 				GameID: game.ID,
-			}).Error; err != nil {
+			}).Error
+
+			if err != nil {
 				log.Printf("Error retrieving/creating session: %v", err)
 				conn.Close()
 				return
 			}
 
 			game.OpponentType = models.OpponentTypeUser
-			game.OpponentUserID = userIDValue
+			game.OpponentUserID = userID
 
 			if err := db.Save(&game).Error; err != nil {
 				log.Printf("Error saving game: %v", err)
@@ -91,29 +94,29 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 				return
 			}
 
-			gameManager.pendingSession.Player2ID = userIDValue
+			gameManager.pendingSession.Player2ID = userID
 			gameManager.pendingSession.Player2Conn = conn
 
 			gameManager.pendingSession.Player1Conn.WriteJSON(map[string]string{
 				"type":    "game_start",
 				"message": "Player 2 has joined! Game is starting.",
-				"gameID":  string(rune(game.PublicID)),
+				"gameID":  strconv.FormatUint(game.PublicID, 10),
 			})
 
 			gameManager.pendingSession.Player2Conn.WriteJSON(map[string]string{
 				"type":    "game_start",
 				"message": "You've joined a game! Game is starting.",
-				"gameID":  string(rune(game.PublicID)),
+				"gameID":  strconv.FormatUint(game.PublicID, 10),
 			})
 
 			gameManager.sessions[sessionRecord.ID] = gameManager.pendingSession
 
 			gameManager.pendingSession = nil
 
-			go handleGameCommunication(db, conn, sessionRecord.ID, userIDValue)
+			go handleGameCommunication(db, conn, sessionRecord.ID, userID)
 		} else {
 			newGame := models.Game{
-				UserID:       userIDValue,
+				UserID:       userID,
 				OpponentType: models.OpponentTypeUser,
 				GameStatus:   models.GameStatusInProgress,
 				GameState:    models.GameStateDraw,
@@ -146,7 +149,7 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			newActiveSession := &ActiveSession{
 				SessionID:   newSessionRecord.ID,
 				GameID:      newGame.ID,
-				Player1ID:   userIDValue,
+				Player1ID:   userID,
 				Player1Conn: conn,
 			}
 
@@ -157,10 +160,10 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			conn.WriteJSON(map[string]string{
 				"type":    "waiting",
 				"message": "Waiting for another player to join...",
-				"gameID":  string(rune(newGame.PublicID)),
+				"gameID":  strconv.FormatUint(newGame.PublicID, 10),
 			})
 
-			go handleGameCommunication(db, conn, newSessionRecord.ID, userIDValue)
+			go handleGameCommunication(db, conn, newSessionRecord.ID, userID)
 		}
 	}
 }
@@ -172,7 +175,7 @@ func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, sessionID uint64
 	}()
 
 	for {
-		_, message, err := conn.ReadMessage()
+		messageType, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Printf("Error reading message: %v", err)
 			break
@@ -181,7 +184,7 @@ func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, sessionID uint64
 		log.Printf("Received message from session %d, user %d: %s", sessionID, userID, message)
 
 		// For now, just echo the message back
-		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
+		if err := conn.WriteMessage(messageType, message); err != nil {
 			log.Printf("Error writing message: %v", err)
 			break
 		}

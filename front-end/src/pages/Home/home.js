@@ -33,10 +33,8 @@ function HomePage() {
     totalGamesDrawn: 5
   };
 
-  // Calculate win percentage
   const winPercentage = Math.round((mockProfile.totalGamesWon / mockProfile.totalGames) * 100);
   
-  // Game types with their corresponding icons and descriptions
   const gameTypes = [
     { 
       name: 'Bullet', 

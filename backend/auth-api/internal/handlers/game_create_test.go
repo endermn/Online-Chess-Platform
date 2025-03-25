@@ -58,10 +58,8 @@ func TestGameCreation(t *testing.T) {
 		t.Fatalf("Failed to create token for user: %v", err)
 	}
 
-	// Convert http URL to websocket URL
 	wsURL := strings.Replace(server.URL, "http://", "ws://", 1) + "/game/create"
 
-	// Connect to the websocket
 	dialer := websocket.Dialer{
 		Proxy:            http.ProxyFromEnvironment,
 		HandshakeTimeout: 5 * time.Second,
@@ -76,9 +74,6 @@ func TestGameCreation(t *testing.T) {
 	}
 	defer conn.Close()
 
-	// Here you can test the actual websocket communication
-	// For example:
-	// Send a message
 	err = conn.WriteMessage(websocket.TextMessage, []byte("test message"))
 	if err != nil {
 		t.Fatalf("Failed to send message: %v", err)
@@ -91,7 +86,6 @@ func TestGameCreation(t *testing.T) {
 
 	t.Logf("Message type: %v \n message: %v", messageType, message)
 
-	// A simple check that connection succeeded
 	if resp.StatusCode != http.StatusSwitchingProtocols {
 		t.Fatalf("Expected Status Switching Protocols but got: %d", resp.StatusCode)
 	}

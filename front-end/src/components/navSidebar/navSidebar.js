@@ -11,18 +11,68 @@ import {
 } from 'react-icons/fa';
 import { Col, Navbar, Nav, Image, Badge, ProgressBar } from "react-bootstrap";
 import styles from "./navSidebar.module.css";
+import { useNavigate } from "react-router-dom";
 
-export default function NavSidebar({ profile }) {
-    // Get current path from window location
+export default function NavSidebar() {
+    const [profile, setProfile] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [currentPath, setCurrentPath] = useState('');
+
+    const navigate = useNavigate();
     
     useEffect(() => {
-        // Set the current path based on the URL
         const path = window.location.pathname;
         setCurrentPath(path);
+
+        const fetchProfileData = async () => {
+            try {
+                const profileResponse = await fetch('http://localhost:8080/profile', {
+                    method: 'GET',
+                    credentials: 'include' 
+                });
+
+                const statsResponse = await fetch('http://localhost:8080/user/stats', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!profileResponse.ok || !statsResponse.ok) {
+                    throw new Error('Failed to fetch profile data');
+                }
+
+                const profileData = await profileResponse.json();
+                const statsData = await statsResponse.json();
+
+                setProfile({
+                    ...profileData,
+                    ...statsData
+                });
+
+                setIsLoading(false);
+            } catch (err) {
+                setError(err.message);
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfileData();
     }, []);
     
-    // Calculate win rate percentage
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        // navigate("/login")
+        return <div>Error: {error}</div>;
+    }
+
+    if (!profile) {
+        return <div>No profile data available</div>;
+    }
+
     const winRate = Math.round((profile.totalGamesWon / profile.totalGames) * 100);
     
     // Get last 5 games for compact history display

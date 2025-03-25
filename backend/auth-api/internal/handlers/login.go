@@ -26,7 +26,7 @@ func LoginHandler(db *gorm.DB) gin.HandlerFunc {
 		err := db.Take(&user, "email = ?", params.Email).Error
 
 		if err == gorm.ErrRecordNotFound {
-			c.String(http.StatusBadRequest, "No such email: %v", params.Email)
+			c.String(http.StatusBadRequest, "No such email or password")
 			return
 		} else if err != nil {
 			log.Printf("Error while taking from database: %s", err)
@@ -35,15 +35,18 @@ func LoginHandler(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		if !security.VerifyPassword(params.Password, user.PasswordHash) {
-			c.String(http.StatusBadRequest, "No such email or password, correct hash: %v", user.PasswordHash)
+			c.String(http.StatusBadRequest, "No such email or password")
 			return
 		}
 
 		token, err := middleware.CreateToken(user)
 		if err != nil {
-			c.String(http.StatusInternalServerError, "Failed to create token for user: %s", user.Email)
+			log.Printf("Failed to create token for user: %v", user.Email)
+			log.Print(err)
+			c.String(http.StatusInternalServerError, "Unexpected error")
 			return
 		}
+
 		c.SetCookie("sess_token", token, 3600*24, "/", "localhost", false, true)
 
 		c.Header("Content-Type", "application/json")

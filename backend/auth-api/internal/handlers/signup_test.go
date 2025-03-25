@@ -27,6 +27,10 @@ func TestSignupHandler(t *testing.T) {
 		t.Fatalf("Failed to init postgres database: %s", err)
 	}
 
+	test_pem := "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEINRde7gen5gEY4BpiUOa/8ng2MKctPPJTaAbee3bha2UoAoGCCqGSM49\nAwEHoUQDQgAE5tTLdebVfUZNpF/soUsHPB65UFEctl0VfE+ysXxTSiWj2BZ5ZXbr\nlJ2U0oHkkvU4C4sEArRBelU7jv2fGrLxRA==\n-----END EC PRIVATE KEY-----"
+
+	t.Setenv("PEM_KEY", test_pem)
+
 	db.Exec("TRUNCATE games, statistics, users, news, sessions;")
 
 	router := gin.Default()

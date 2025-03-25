@@ -6,6 +6,7 @@ require github.com/lib/pq v1.10.9
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gin-contrib/cors v1.7.4 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect

@@ -30,6 +30,10 @@ func TestLoginHandler(t *testing.T) {
 		t.Fatalf("Failed to init postgres database: %s", err)
 	}
 
+	test_pem := "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEINRde7gen5gEY4BpiUOa/8ng2MKctPPJTaAbee3bha2UoAoGCCqGSM49\nAwEHoUQDQgAE5tTLdebVfUZNpF/soUsHPB65UFEctl0VfE+ysXxTSiWj2BZ5ZXbr\nlJ2U0oHkkvU4C4sEArRBelU7jv2fGrLxRA==\n-----END EC PRIVATE KEY-----"
+
+	t.Setenv("PEM_KEY", test_pem)
+
 	db.Exec("TRUNCATE games, statistics, users, news, sessions;")
 
 	router := gin.Default()
@@ -66,4 +70,18 @@ func TestLoginHandler(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("Failed to login user: %v", w.Body)
 	}
+
+	cookies := w.Result().Cookies()
+	t.Logf("Cookies found: %d", len(cookies))
+	// for _, cookie := range cookies {
+	// 	t.Logf("Cookie: Name=%s, Value=%s, Path=%s, Domain=%s, Expires=%v, HttpOnly=%v, Secure=%v",
+	// 		cookie.Name,
+	// 		cookie.Value,
+	// 		cookie.Path,
+	// 		cookie.Domain,
+	// 		cookie.Expires,
+	// 		cookie.HttpOnly,
+	// 		cookie.Secure,
+	// 	)
+	// }
 }

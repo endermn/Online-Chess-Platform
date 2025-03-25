@@ -5,22 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/endermn/Thesis/backend/auth-api/internal/models"
+	"github.com/endermn/Thesis/backend/auth-api/pkg/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 func ExtractJWTPayload(tokenString string) (map[string]interface{}, error) {
-	// Split the token into its parts: header.payload.signature
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("invalid token format")
 	}
 
-	// Decode the payload (second part)
 	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
 		return nil, err
@@ -35,11 +33,8 @@ func ExtractJWTPayload(tokenString string) (map[string]interface{}, error) {
 }
 
 func VerifyToken(tokenString string) error {
-	// privateKeyPEM, err := os.ReadFile(config.GetEnv("PEM_KEY_PATH"))
-	privateKeyPEM, err := os.ReadFile("../../../../private.pem")
-	if err != nil {
-		return err
-	}
+	keyString := config.GetEnv("PEM_KEY")
+	privateKeyPEM := []byte(strings.ReplaceAll(keyString, "\\n", "\n"))
 
 	privateKey, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
 	if err != nil {
@@ -66,11 +61,8 @@ func VerifyToken(tokenString string) error {
 }
 
 func CreateToken(user models.User) (string, error) {
-	privateKeyPEM, err := os.ReadFile("../../../../private.pem")
-	if err != nil {
-		log.Printf(os.Getwd())
-		return "", err
-	}
+	keyString := config.GetEnv("PEM_KEY")
+	privateKeyPEM := []byte(strings.ReplaceAll(keyString, "\\n", "\n"))
 
 	key, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
 	if err != nil {
