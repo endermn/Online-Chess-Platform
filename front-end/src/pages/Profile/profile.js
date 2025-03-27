@@ -18,6 +18,9 @@ function ProfilePage() {
     totalGamesLost: 72,
   };
 
+  const profile = JSON.parse(localStorage.getItem("profile"))
+  const ratingArr = [profile.BulletRating, profile.BlitzRating, profile.RapidRating, profile.ClassicalRating]
+
   // State for interactive elements
   const [activeRatingCard, setActiveRatingCard] = useState(null);
   const [historyHover, setHistoryHover] = useState(null);
@@ -380,7 +383,7 @@ function ProfilePage() {
                       <Card.Body>
                         <h4 style={{ color: darkTheme.text.accent }}>{item.title}</h4>
                         <h2 style={{ color: darkTheme.text.primary, fontSize: '32px' }}>
-                          {mockProfile.rating[item.index]}
+                          {ratingArr[item.index]}
                         </h2>
                         <RatingCard title={item.title} rating={mockProfile.rating[item.index]/30} />
                       </Card.Body>

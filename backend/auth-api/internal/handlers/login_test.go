@@ -73,15 +73,15 @@ func TestLoginHandler(t *testing.T) {
 
 	cookies := w.Result().Cookies()
 	t.Logf("Cookies found: %d", len(cookies))
-	// for _, cookie := range cookies {
-	// 	t.Logf("Cookie: Name=%s, Value=%s, Path=%s, Domain=%s, Expires=%v, HttpOnly=%v, Secure=%v",
-	// 		cookie.Name,
-	// 		cookie.Value,
-	// 		cookie.Path,
-	// 		cookie.Domain,
-	// 		cookie.Expires,
-	// 		cookie.HttpOnly,
-	// 		cookie.Secure,
-	// 	)
-	// }
+	for _, cookie := range cookies {
+		t.Logf("Cookie: Name=%s, Value=%s, Path=%s, Domain=%s, Expires=%v, HttpOnly=%v, Secure=%v",
+			cookie.Name,
+			cookie.Value,
+			cookie.Path,
+			cookie.Domain,
+			cookie.Expires,
+			cookie.HttpOnly,
+			cookie.Secure,
+		)
+	}
 }

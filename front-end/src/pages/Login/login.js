@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Row, Col, Form, Button, Navbar, Nav } from 'react-bootstrap';
 import { useState } from 'react';
-import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 import styles from './login.module.css';
 
 const LoginPage = () => {
@@ -11,6 +11,7 @@ const LoginPage = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -24,23 +25,38 @@ const LoginPage = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        
-        try {
-            const response = await axios.post('http://localhost:8080/login', credentials);
-            
-            const { token } = response.data;
-            
-            localStorage.setItem('authToken', token);
-            
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            
-            window.location.href = '/home';
-        } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please try again.');
-        } finally {
-            setLoading(false);
+
+        const fetchWithCredentials = async () => {
+            try {
+                const response = await fetch("http://localhost:8080/login", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: credentials.email,
+                        password: credentials.password
+                    })
+                })
+                console.log(response);
+                if (response.status != 200) {
+                    throw new Error("Login failed");
+                }
+
+            } catch (err) {
+                setError(err.response?.data?.message || 'Login failed. Please try again.');
+                console.log(err)
+            } finally {
+                setLoading(false);
+            }
         }
+
+        fetchWithCredentials()
+        
+        navigate("/home")
     };
+
 
     return (
         <div className={styles.main}>
@@ -59,34 +75,34 @@ const LoginPage = () => {
                                 <Form onSubmit={handleSubmit}>
                                     <Form.Group className="mb-3" controlId="formBasicEmail">
                                         <Form.Label>Email address</Form.Label>
-                                        <Form.Control 
-                                            className={styles.control} 
-                                            type="email" 
-                                            placeholder="Enter email" 
+                                        <Form.Control
+                                            className={styles.control}
+                                            type="email"
+                                            placeholder="Enter email"
                                             name="email"
                                             value={credentials.email}
                                             onChange={handleChange}
-                                            style={{ backgroundColor: '#333333', borderColor: '#444444' }} 
+                                            style={{ backgroundColor: '#333333', borderColor: '#444444' }}
                                             required
                                         />
                                     </Form.Group>
                                     <Form.Group className="mb-3" controlId="formBasicPassword">
                                         <Form.Label>Password</Form.Label>
-                                        <Form.Control 
-                                            className={styles.control} 
-                                            type="password" 
-                                            placeholder="Password" 
+                                        <Form.Control
+                                            className={styles.control}
+                                            type="password"
+                                            placeholder="Password"
                                             name="password"
                                             value={credentials.password}
                                             onChange={handleChange}
-                                            style={{ backgroundColor: '#333333', borderColor: '#444444' }} 
+                                            style={{ backgroundColor: '#333333', borderColor: '#444444' }}
                                             required
                                         />
                                     </Form.Group>
                                     <div className="d-grid gap-2">
-                                        <Button 
-                                            className={styles.submit} 
-                                            variant="primary" 
+                                        <Button
+                                            className={styles.submit}
+                                            variant="primary"
                                             type="submit"
                                             disabled={loading}
                                         >

@@ -78,7 +78,6 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			err := db.FirstOrCreate(&sessionRecord, models.Session{
 				GameID: game.ID,
 			}).Error
-
 			if err != nil {
 				log.Printf("Error retrieving/creating session: %v", err)
 				conn.Close()

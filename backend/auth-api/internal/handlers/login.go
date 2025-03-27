@@ -47,7 +47,19 @@ func LoginHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		c.SetCookie("sess_token", token, 3600*24, "/", "localhost", false, true)
+		// expiration := time.Now().Add(24 * time.Hour)
+		c.SetCookie("sess_token", token, 3600*24, "/", "127.0.0.1:3000", false, true)
+
+		// http.SetCookie(c.Writer, &http.Cookie{
+		// 	Name:     "sess_token",
+		// 	Value:    token,
+		// 	MaxAge:   3600 * 24,
+		// 	Path:     "/",
+		// 	Domain:   "localhost",
+		// 	SameSite: http.SameSiteNoneMode,
+		// 	Secure:   false,
+		// 	HttpOnly: true,
+		// })
 
 		c.Header("Content-Type", "application/json")
 		c.String(http.StatusOK, "Cookie has been set")

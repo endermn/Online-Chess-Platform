@@ -27,22 +27,36 @@ const RegisterPage = () => {
         setLoading(true);
         setError('');
 
+    const fetchWithCredentials = async () => {
         try {
-            const response = await axios.post('http://localhost:8080/signup', credentials);
-
-            const { token } = response.data;
-
-            localStorage.setItem('authToken', token);
-
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            const response = await fetch("http://localhost:8080/signup", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    fullname: credentials.fullname,
+                    email: credentials.email,
+                    password: credentials.password
+                })
+            })
+            console.log(response);
+            if (response.status != 201) {
+                throw new Error("Signup failed");
+            }
 
             window.location.href = '/home';
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.'); 
+            setError(err.response?.data?.message || 'Signup failed. Please try again.');
+            console.log(err)
         } finally {
             setLoading(false);
         }
-    };
+    }
+
+    fetchWithCredentials()
+};
 
     return (
         <div className={styles.main}>

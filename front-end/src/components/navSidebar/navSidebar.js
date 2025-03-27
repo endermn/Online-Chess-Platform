@@ -12,6 +12,7 @@ import {
 import { Col, Navbar, Nav, Image, Badge, ProgressBar } from "react-bootstrap";
 import styles from "./navSidebar.module.css";
 import { useNavigate } from "react-router-dom";
+import defaultImage from "../../assets/default_pfp.webp"
 
 export default function NavSidebar() {
     const [profile, setProfile] = useState(null);
@@ -65,7 +66,6 @@ export default function NavSidebar() {
     }
 
     if (error) {
-        // navigate("/login")
         return <div>Error: {error}</div>;
     }
 
@@ -73,20 +73,30 @@ export default function NavSidebar() {
         return <div>No profile data available</div>;
     }
 
-    const winRate = Math.round((profile.totalGamesWon / profile.totalGames) * 100);
-    
-    // Get last 5 games for compact history display
-    const recentGames = profile.history.slice(0, 5);
+
+    // Calculate win rate safely
+    const winRate = profile.TotalGames > 0 
+        ? Math.round((profile.GamesWon / profile.TotalGames) * 100) 
+        : 0;
     
     // Determine player status based on rating
     const getPlayerStatus = (rating) => {
-        const currentRating = rating[rating.length - 1];
-        if (currentRating >= 1400) return { text: "Advanced", color: "#198754" };
-        if (currentRating >= 1000) return { text: "Intermediate", color: "#0d6efd" };
+        if (rating >= 1400) return { text: "Advanced", color: "#198754" };
+        if (rating >= 1000) return { text: "Intermediate", color: "#0d6efd" };
         return { text: "Beginner", color: "#6c757d" };
     };
-    
-    const playerStatus = getPlayerStatus(profile.rating);
+
+    const maxRating = Math.max(
+        profile.BulletRating, 
+        profile.BlitzRating, 
+        profile.RapidRating, 
+        profile.ClassicalRating
+    );
+    profile.maxRating = maxRating
+    localStorage.setItem("profile", JSON.stringify(profile))
+
+
+    const playerStatus = getPlayerStatus(maxRating);
 
     // Navigation links with their paths
     const navLinks = [
@@ -103,7 +113,7 @@ export default function NavSidebar() {
                 <div className={styles.sidebarHeader}>
                     <div className={styles.profileImageContainer}>
                         <Image
-                            src={profile.profilePicture}
+                            src={profile.PictureFileName || defaultImage}
                             roundedCircle
                             className={styles.profileImage}
                         />
@@ -112,7 +122,7 @@ export default function NavSidebar() {
                     
                     <div className={styles.profileInfo}>
                         <div className={styles.profileName}>
-                            {profile.firstName} {profile.lastName}
+                            {profile.FullName}
                         </div>
                         <Badge 
                             bg="transparent" 
@@ -128,7 +138,7 @@ export default function NavSidebar() {
                 <div className={styles.statsContainer}>
                     <div className={styles.ratingContainer}>
                         <div className={styles.ratingLabel}>Rating</div>
-                        <div className={styles.ratingValue}>{profile.rating[profile.rating.length - 1]}</div>
+                        <div className={styles.ratingValue}>{maxRating}</div>
                     </div>
                     
                     <div className={styles.winRateContainer}>
@@ -141,23 +151,6 @@ export default function NavSidebar() {
                             variant={winRate > 50 ? "success" : "warning"} 
                             className={styles.winRateProgress}
                         />
-                    </div>
-                    
-                    <div className={styles.gameHistoryContainer}>
-                        <div className={styles.gameHistoryLabel}>Recent Games</div>
-                        <div className={styles.gameHistoryItems}>
-                            {recentGames.map((result, index) => (
-                                <div 
-                                    key={index} 
-                                    className={`${styles.gameHistoryItem} ${
-                                        result === "win" ? styles.gameWin : styles.gameLoss
-                                    }`}
-                                    title={result === "win" ? "Victory" : "Defeat"}
-                                >
-                                    {result === "win" ? "W" : "L"}
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </div>
                 

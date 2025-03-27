@@ -23,6 +23,7 @@ func setupRoutes(db *gorm.DB) *gin.Engine {
 	config.AllowCredentials = true
 	config.MaxAge = 12 * time.Hour
 
+	// router.Use(middleware.CorsMiddleware())
 	router.Use(cors.New(config))
 
 	router.GET("/status", handlers.StatusHandler)
