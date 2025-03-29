@@ -34,8 +34,8 @@ function HomePage() {
     totalGamesDrawn: 5
   };
 
-
   const profile = JSON.parse(localStorage.getItem("profile"))
+
   let winPercentage = 0;
   if (profile.TotalGames != 0) {
     winPercentage = Math.round((profile.GamesWon / profile.TotalGames) * 100);

@@ -30,6 +30,7 @@ func setupRoutes(db *gorm.DB) *gin.Engine {
 	router.GET("/profile", handlers.ProfileHandler(db))
 	router.GET("/user/stats", handlers.UserStatsHandler(db))
 	router.GET("/ws", handlers.WebsocketHandler)
+	router.GET("/puzzle/random", handlers.GetRandomPuzzle(db))
 
 	router.POST("/signup", handlers.SignupHandler(db))
 	router.POST("/login", handlers.LoginHandler(db))
