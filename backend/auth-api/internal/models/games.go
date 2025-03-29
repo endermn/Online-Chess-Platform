@@ -19,7 +19,7 @@ const (
 
 type Game struct {
 	ID             uint64 `gorm:"primaryKey"`
-	PublicID       uint64 `gorm:"index"`
+	PublicID       uint64 `gorm:"uniqueIndex"`
 	UserID         uint64 `gorm:"not null"`
 	OpponentType   string `gorm:"type:opponent_type;not null"`
 	OpponentUserID uint64

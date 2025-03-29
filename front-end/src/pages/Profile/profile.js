@@ -4,6 +4,7 @@ import styles from './profile.module.css';
 import StatisticsCard from '../../components/statisticsCard/statisticsCard.js';
 import RatingCard from '../../components/ratingCard/ratingCard.js';
 import NavSidebar from '../../components/navSidebar/navSidebar.js';
+import defaultPfp from '../../assets/default_pfp.webp'
 
 function ProfilePage() {
   const mockProfile = {
@@ -18,7 +19,9 @@ function ProfilePage() {
     totalGamesLost: 72,
   };
 
-  // State for interactive elements
+  const profile = JSON.parse(localStorage.getItem("profile"))
+  const ratingArr = [profile.BulletRating, profile.BlitzRating, profile.RapidRating, profile.ClassicalRating]
+
   const [activeRatingCard, setActiveRatingCard] = useState(null);
   const [historyHover, setHistoryHover] = useState(null);
   const [expandedStats, setExpandedStats] = useState(false);
@@ -211,7 +214,7 @@ function ProfilePage() {
       <Container fluid>
         <Row>
           {/* Sidebar */}
-          <NavSidebar profile={mockProfile} />
+          <NavSidebar />
           
           {/* Main Content */}
           <Col xs={10} style={customStyles.content}>
@@ -229,7 +232,7 @@ function ProfilePage() {
                   <Col lg={4}>
                     <div style={customStyles.profileHeader}>
                       <Image 
-                        src={mockProfile.profilePicture} 
+                        src={profile.PictureFileName || defaultPfp} 
                         roundedCircle 
                         style={{
                           ...customStyles.profileImage,
@@ -240,10 +243,10 @@ function ProfilePage() {
                       />
                       <div>
                         <h2 style={customStyles.userName}>
-                          {mockProfile.firstName} {mockProfile.lastName}
+                          {profile.FullName}
                         </h2>
                         <p style={{ color: darkTheme.text.secondary }}>
-                          {mockProfile.email}
+                          {profile.Email}
                         </p>
                         <div style={{ 
                           display: 'flex', 
@@ -326,7 +329,7 @@ function ProfilePage() {
                           id="winRateFill"
                           style={{ 
                             ...customStyles.winRateFill,
-                            width: `${(mockProfile.totalGamesWon / mockProfile.totalGames) * 100}%`,
+                            width: `${(profile.GamesWon / profile.TotalGames) * 100 || 0}%`,
                             transform: showWinRate ? 'scaleX(1)' : 'scaleX(0)'
                           }}
                         ></div>
@@ -338,8 +341,8 @@ function ProfilePage() {
                         fontSize: '14px',
                         color: darkTheme.text.secondary
                       }}>
-                        <span>{Math.round((mockProfile.totalGamesWon / mockProfile.totalGames) * 100)}%</span>
-                        <span>{mockProfile.totalGamesWon} wins / {mockProfile.totalGamesLost} losses</span>
+                        <span>{Math.round((profile.GamesWon / profile.TotalGames) * 100) || 0}%</span>
+                        <span>{profile.GamesWon} wins / {profile.GamesLost} losses</span>
                       </div>
                     </div>
                   </Col>
@@ -380,9 +383,9 @@ function ProfilePage() {
                       <Card.Body>
                         <h4 style={{ color: darkTheme.text.accent }}>{item.title}</h4>
                         <h2 style={{ color: darkTheme.text.primary, fontSize: '32px' }}>
-                          {mockProfile.rating[item.index]}
+                          {ratingArr[item.index]}
                         </h2>
-                        <RatingCard title={item.title} rating={mockProfile.rating[item.index]/30} />
+                        <RatingCard title={item.title} rating={ratingArr[item.index]/30} />
                       </Card.Body>
                     </Card>
                   ))}
@@ -407,9 +410,9 @@ function ProfilePage() {
                 </h3>
                 <Row style={customStyles.statsRow}>
                   {[
-                    {title: "Total Games Played", value: mockProfile.totalGames, icon: "bi-check-lg", color: darkTheme.text.accent, index: 0},
-                    {title: "Games Won", value: mockProfile.totalGamesWon, icon: "bi-trophy-fill", color: "#3a7bd5", index: 1},
-                    {title: "Games Lost", value: mockProfile.totalGamesLost, icon: "bi-x-lg", color: "#e74c3c", index: 2}
+                    {title: "Total Games Played", value: profile.TotalGames, icon: "bi-check-lg", color: darkTheme.text.accent, index: 0},
+                    {title: "Games Won", value: profile.GamesWon, icon: "bi-trophy-fill", color: "#3a7bd5", index: 1},
+                    {title: "Games Lost", value: profile.GamesLost, icon: "bi-x-lg", color: "#e74c3c", index: 2}
                   ].map((stat) => (
                     <Col md={4} key={stat.index}>
                       <Card 

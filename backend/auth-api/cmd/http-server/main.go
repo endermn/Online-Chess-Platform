@@ -27,7 +27,7 @@ func main() {
 
 	// Set up HTTP server
 	server := &http.Server{
-		Addr:         ":3000",
+		Addr:         ":8080",
 		Handler:      application.Handler(),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,

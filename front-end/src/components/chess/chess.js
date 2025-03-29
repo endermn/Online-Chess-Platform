@@ -60,7 +60,7 @@ const posToSquare = (pos) => {
   return files[pos.x] + ranks[pos.y];
 };
 
-const ChessGame = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", squareSize = 50, onMove, isPuzzle }) => {
+const ChessGame = React.forwardRef(({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", squareSize = 50, onMove, isPuzzle }, ref) => {
   const [game, setGame] = useState(null);
   const [boardPieces, setBoardPieces] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -68,6 +68,22 @@ const ChessGame = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -
   const [legalMoves, setLegalMoves] = useState([]);
   const [feedback, setFeedback] = useState(null);
   const initialFenRef = useRef(fen);
+  
+  // Expose methods to parent component via ref
+  React.useImperativeHandle(ref, () => ({
+    makeMove: (moveNotation) => {
+      if (game) {
+        try {
+          const move = game.move(moveNotation);
+          if (move) {
+            setBoardPieces(convertChessJsBoard(game));
+          }
+        } catch (e) {
+          console.error("Invalid move:", e);
+        }
+      }
+    }
+  }));
   
   // Initialize chess game
   useEffect(() => {
@@ -331,6 +347,6 @@ const ChessGame = ({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -
       </div>
     </div>
   );
-};
+});
 
 export default ChessGame;

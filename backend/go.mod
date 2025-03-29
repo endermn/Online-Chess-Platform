@@ -4,7 +4,18 @@ go 1.23.1
 
 require github.com/lib/pq v1.10.9
 
-require github.com/joho/godotenv v1.5.1 // indirect
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gin-contrib/cors v1.7.4 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
+	golang.org/x/time v0.11.0 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.12.10 // indirect

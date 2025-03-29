@@ -1,0 +1,5 @@
+*.env
+.DS_Store
+private.pem
+.vscode
+*.zst

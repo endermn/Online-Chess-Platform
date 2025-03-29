@@ -29,12 +29,12 @@ const Welcome = () => {
         <Navbar.Brand className={styles.name}>
           <span className={styles.logoText}>C</span>hesster
         </Navbar.Brand>
-        <Nav className="mr-auto">
+        {/* <Nav className="mr-auto">
           <Nav.Link href="home" className={styles.navLink}>Home</Nav.Link>
           <Nav.Link href="news" className={styles.navLink}>News</Nav.Link>
           <Nav.Link href="home" className={styles.navLink}>Play</Nav.Link>
           <Nav.Link href="puzzles" className={styles.navLink}>Puzzles</Nav.Link>
-        </Nav>
+        </Nav> */}
         <Nav className="ms-auto">
           <Button variant="outline-light" href='login' className={styles.login}>
             Log in
