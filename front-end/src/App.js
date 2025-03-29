@@ -11,6 +11,7 @@ import ProfilePage from './pages/Profile/profile';
 import PuzzlesPage from './pages/Puzzles/puzzles';
 import NewsPage from './pages/News/news';
 import BoardEditor from './pages/BoardEditor/boardeditor';
+import ChessGamePage from './pages/Game/game';
 
 function App() {
 
@@ -27,6 +28,10 @@ function App() {
 					<Route path='boardeditor' element = {<BoardEditor />} />
 					<Route path='login' element = {<Login />} />
 					<Route path='signup' element = {<RegisterPage />} />
+					<Route path='game/bullet' element = {<ChessGamePage />} />
+					<Route path='game/blitz' element = {<ChessGamePage />} />
+					<Route path='game/rapid' element = {<ChessGamePage />} />
+					<Route path='game/classical' element = {<ChessGamePage />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

@@ -49,28 +49,28 @@ function HomePage() {
       image: bulletImage,
       color: '#f05454',
       description: '1 min per player',
-      path: 'play/bullet'
+      path: 'game/bullet'
     },
     {
       name: 'Blitz',
       image: blitzImage,
       color: '#5485f0',
       description: '3-5 min per player',
-      path: 'play/blitz'
+      path: 'game/blitz'
     },
     {
       name: 'Rapid',
       image: rapidImage,
       color: '#54c0f0',
       description: '10 min per player',
-      path: 'play/rapid'
+      path: 'game/rapid'
     },
     {
       name: 'Classical',
       image: classicalImage,
       color: '#a554f0',
       description: '15+ min per player',
-      path: 'play/classical'
+      path: 'game/classical'
     }
   ];
 
