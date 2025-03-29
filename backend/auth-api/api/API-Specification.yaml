@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: User Authentication and Profile API
+  title: User Authentication, Profile, and Game WebSocket API
   version: 1.0.0
 servers:
     - url: /api
@@ -10,6 +10,7 @@ paths:
       summary: Register a new user
       tags:
         - Public
+        - Authentication
       requestBody:
         required: true
         content:
@@ -50,6 +51,7 @@ paths:
       summary: Authenticate a user
       tags:
         - Public
+        - Authentication
       requestBody:
         required: true
         content:
@@ -86,6 +88,7 @@ paths:
       summary: Logout a user
       tags:
         - Public
+        - Authentication
       responses:
         '200':
           description: User logged out successfully, JWT cookie cleared.
@@ -100,6 +103,7 @@ paths:
       summary: Get user profile
       tags:
         - Protected
+        - Profile
       security:
         - cookieAuth: []
       responses:
@@ -128,6 +132,7 @@ paths:
       summary: Get user statistics
       tags:
         - Protected
+        - Profile
       security:
         - cookieAuth: []
       responses:
@@ -151,9 +156,328 @@ paths:
         '500':
           description: Internal server error.
 
+  # WebSocket Management Endpoints
+  /game/create:
+    post:
+      summary: Create a new game session and get WebSocket connection details
+      tags:
+        - Protected
+        - Game
+        - WebSocket
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameType:
+                  type: string
+                  description: Type of game to create
+                  example: "bullet"
+                settings:
+                  type: object
+                  description: Game-specific settings
+                  example: {"timeControl": "1+0", "rated": true}
+      responses:
+        '201':
+          description: Game session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  wsEndpoint:
+                    type: string
+                    description: WebSocket endpoint URL
+                    example: "/ws/game/550e8400-e29b-41d4-a716-446655440000"
+                  token:
+                    type: string
+                    description: Connection token for authentication (one-time use)
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Bad request, invalid input.
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '500':
+          description: Internal server error.
+
+  /game/join/{gameId}:
+    post:
+      summary: Join an existing game session
+      tags:
+        - Protected
+        - Game
+        - WebSocket
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully joined game session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wsEndpoint:
+                    type: string
+                    description: WebSocket endpoint URL
+                    example: "/ws/game/550e8400-e29b-41d4-a716-446655440000"
+                  token:
+                    type: string
+                    description: Connection token for authentication (one-time use)
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  gameState:
+                    type: object
+                    description: Current state of the game
+        '400':
+          description: Bad request, invalid input.
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '404':
+          description: Game session not found.
+        '500':
+          description: Internal server error.
+
+  /game/reconnect/{gameId}:
+    post:
+      summary: Reconnect to an existing game session after disconnect
+      tags:
+        - Protected
+        - Game
+        - WebSocket
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully generated reconnect information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wsEndpoint:
+                    type: string
+                    description: WebSocket endpoint URL
+                    example: "/ws/game/550e8400-e29b-41d4-a716-446655440000"
+                  token:
+                    type: string
+                    description: Connection token for authentication (one-time use)
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  gameState:
+                    type: object
+                    description: Current state of the game to synchronize client
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '404':
+          description: Game session not found or expired.
+        '500':
+          description: Internal server error.
+
+  /game/status/{gameId}:
+    get:
+      summary: Get status of an existing game session
+      tags:
+        - Protected
+        - Game
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully retrieved game status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [waiting, active, completed, abandoned]
+                    example: "active"
+                  players:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: string
+                          format: uuid
+                        username:
+                          type: string
+                        connected:
+                          type: boolean
+                  startedAt:
+                    type: string
+                    format: date-time
+                  lastActivity:
+                    type: string
+                    format: date-time
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '404':
+          description: Game session not found.
+        '500':
+          description: Internal server error.
+
+  /game/list:
+    get:
+      summary: List available game sessions
+      tags:
+        - Protected
+        - Game
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [waiting, active, all]
+            default: waiting
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filter by game type
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successfully retrieved list of games
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gameId:
+                          type: string
+                          format: uuid
+                        gameType:
+                          type: string
+                        status:
+                          type: string
+                          enum: [waiting, active, completed, abandoned]
+                        players:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              username:
+                                type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '500':
+          description: Internal server error.
+
+  /game/active:
+    get:
+      summary: List active game sessions for the current user
+      tags:
+        - Protected
+        - Game
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved list of active games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    gameId:
+                      type: string
+                      format: uuid
+                    gameType:
+                      type: string
+                    status:
+                      type: string
+                      enum: [waiting, active]
+                    opponent:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                    lastActivity:
+                      type: string
+                      format: date-time
+        '401':
+          description: Unauthorized, missing or invalid JWT.
+        '500':
+          description: Internal server error.
+
 components:
   securitySchemes:
     cookieAuth:
       type: apiKey
       in: cookie
       name: jwt
+  schemas:
+    WebSocketEvent:
+      type: object
+      description: Structure of WebSocket messages (documentation only, not used in REST API)
+      properties:
+        type:
+          type: string
+          description: Type of event
+          example: "move"
+        payload:
+          type: object
+          description: Event-specific data
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - type
+        - payload

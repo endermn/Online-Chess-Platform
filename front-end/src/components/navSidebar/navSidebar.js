@@ -11,32 +11,92 @@ import {
 } from 'react-icons/fa';
 import { Col, Navbar, Nav, Image, Badge, ProgressBar } from "react-bootstrap";
 import styles from "./navSidebar.module.css";
+import { useNavigate } from "react-router-dom";
+import defaultImage from "../../assets/default_pfp.webp"
 
-export default function NavSidebar({ profile }) {
-    // Get current path from window location
+export default function NavSidebar() {
+    const [profile, setProfile] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [currentPath, setCurrentPath] = useState('');
+
+    const navigate = useNavigate();
     
     useEffect(() => {
-        // Set the current path based on the URL
         const path = window.location.pathname;
         setCurrentPath(path);
+
+        const fetchProfileData = async () => {
+            try {
+                const profileResponse = await fetch('http://localhost:8080/profile', {
+                    method: 'GET',
+                    credentials: 'include' 
+                });
+
+                const statsResponse = await fetch('http://localhost:8080/user/stats', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!profileResponse.ok || !statsResponse.ok) {
+                    throw new Error('Failed to fetch profile data');
+                }
+
+                const profileData = await profileResponse.json();
+                const statsData = await statsResponse.json();
+
+                setProfile({
+                    ...profileData,
+                    ...statsData
+                });
+
+                setIsLoading(false);
+            } catch (err) {
+                setError(err.message);
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfileData();
     }, []);
     
-    // Calculate win rate percentage
-    const winRate = Math.round((profile.totalGamesWon / profile.totalGames) * 100);
-    
-    // Get last 5 games for compact history display
-    const recentGames = profile.history.slice(0, 5);
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
+
+    if (!profile) {
+        return <div>No profile data available</div>;
+    }
+
+
+    // Calculate win rate safely
+    const winRate = profile.TotalGames > 0 
+        ? Math.round((profile.GamesWon / profile.TotalGames) * 100) 
+        : 0;
     
     // Determine player status based on rating
     const getPlayerStatus = (rating) => {
-        const currentRating = rating[rating.length - 1];
-        if (currentRating >= 1400) return { text: "Advanced", color: "#198754" };
-        if (currentRating >= 1000) return { text: "Intermediate", color: "#0d6efd" };
+        if (rating >= 1400) return { text: "Advanced", color: "#198754" };
+        if (rating >= 1000) return { text: "Intermediate", color: "#0d6efd" };
         return { text: "Beginner", color: "#6c757d" };
     };
-    
-    const playerStatus = getPlayerStatus(profile.rating);
+
+    const maxRating = Math.max(
+        profile.BulletRating, 
+        profile.BlitzRating, 
+        profile.RapidRating, 
+        profile.ClassicalRating
+    );
+    profile.maxRating = maxRating
+    localStorage.setItem("profile", JSON.stringify(profile))
+
+
+    const playerStatus = getPlayerStatus(maxRating);
 
     // Navigation links with their paths
     const navLinks = [
@@ -53,7 +113,7 @@ export default function NavSidebar({ profile }) {
                 <div className={styles.sidebarHeader}>
                     <div className={styles.profileImageContainer}>
                         <Image
-                            src={profile.profilePicture}
+                            src={profile.PictureFileName || defaultImage}
                             roundedCircle
                             className={styles.profileImage}
                         />
@@ -62,7 +122,7 @@ export default function NavSidebar({ profile }) {
                     
                     <div className={styles.profileInfo}>
                         <div className={styles.profileName}>
-                            {profile.firstName} {profile.lastName}
+                            {profile.FullName}
                         </div>
                         <Badge 
                             bg="transparent" 
@@ -78,7 +138,7 @@ export default function NavSidebar({ profile }) {
                 <div className={styles.statsContainer}>
                     <div className={styles.ratingContainer}>
                         <div className={styles.ratingLabel}>Rating</div>
-                        <div className={styles.ratingValue}>{profile.rating[profile.rating.length - 1]}</div>
+                        <div className={styles.ratingValue}>{maxRating}</div>
                     </div>
                     
                     <div className={styles.winRateContainer}>
@@ -91,23 +151,6 @@ export default function NavSidebar({ profile }) {
                             variant={winRate > 50 ? "success" : "warning"} 
                             className={styles.winRateProgress}
                         />
-                    </div>
-                    
-                    <div className={styles.gameHistoryContainer}>
-                        <div className={styles.gameHistoryLabel}>Recent Games</div>
-                        <div className={styles.gameHistoryItems}>
-                            {recentGames.map((result, index) => (
-                                <div 
-                                    key={index} 
-                                    className={`${styles.gameHistoryItem} ${
-                                        result === "win" ? styles.gameWin : styles.gameLoss
-                                    }`}
-                                    title={result === "win" ? "Victory" : "Defeat"}
-                                >
-                                    {result === "win" ? "W" : "L"}
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </div>
                 

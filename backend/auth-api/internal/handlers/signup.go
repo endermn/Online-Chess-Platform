@@ -29,8 +29,14 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 		var user models.User
 
 		err = db.Take(&user, "email = ?", params.Email).Error
-		if err != gorm.ErrRecordNotFound {
+		if err == nil {
 			c.String(http.StatusBadRequest, "User already exists")
+			return
+		}
+
+		if err != gorm.ErrRecordNotFound {
+			log.Printf("Failed while looking up record: %v", err)
+			c.String(http.StatusInternalServerError, "Unexpected error")
 			return
 		}
 
@@ -55,13 +61,34 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 
 		err = db.Create(&user).Error
 		if err != nil {
-			c.String(http.StatusInternalServerError, "Failed while creating user: %s", params.Email)
+			c.String(http.StatusInternalServerError, "Unexpected error")
+			log.Printf("Failed while creating user: %v", err)
+			return
+		}
+
+		userStats := models.Statistic{
+			BulletRating:    500,
+			BlitzRating:     500,
+			RapidRating:     500,
+			ClassicalRating: 500,
+			TotalGames:      0,
+			GamesWon:        0,
+			GamesLost:       0,
+			UserID:          user.ID,
+		}
+
+		err = db.Create(&userStats).Error
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Unexpected error")
+			log.Printf("Failed while creating user stats: %v", err)
 			return
 		}
 
 		token, err := middleware.CreateToken(user)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to create token for user: %s", user.Email)
+			log.Print(err)
+			return
 		}
 		c.SetCookie("sess_token", token, 3600*24, "/", "localhost", false, true)
 
