@@ -20,7 +20,6 @@ type SignupParams struct {
 
 func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var params SignupParams
 		err := c.BindJSON(&params)
 		if err != nil {

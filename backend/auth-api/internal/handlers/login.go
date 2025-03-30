@@ -19,7 +19,6 @@ type LoginParams struct {
 
 func LoginHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var params LoginParams
 		c.Bind(&params)
 
