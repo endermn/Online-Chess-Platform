@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/endermn/Thesis/backend/auth-api/internal/middleware"
 	"github.com/endermn/Thesis/backend/auth-api/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -47,13 +48,47 @@ var gameManager = &GameManager{
 
 func GameHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userIDString, exists := c.Get("userID")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		token, err := c.Cookie("sess_token")
+		if err != nil {
+			c.String(http.StatusUnauthorized, "failed to find cookie")
+			c.Abort()
 			return
 		}
 
-		userID := userIDString.(uint64)
+		// Extract claims from JWT
+		claims, err := middleware.ExtractJWTPayload(token)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Unexpected error occurred")
+			log.Printf("Failed to extract JWT Payload on token: %v", token)
+			c.Abort()
+			return
+		}
+
+		err = middleware.VerifyToken(token)
+		if err != nil {
+			c.String(http.StatusUnauthorized, "Invalid token: %v", err)
+			c.Abort()
+			return
+		}
+
+		// Get user ID from claims
+		idValue, ok := claims["userID"]
+		if !ok {
+			c.String(http.StatusUnauthorized, "Invalid token: missing user ID")
+			c.Abort()
+			return
+		}
+
+		// Convert ID to float64 (JSON numbers are represented as float64)
+		userIDFloat, ok := idValue.(float64)
+		if !ok {
+			c.String(http.StatusUnauthorized, "Invalid token: user ID is not a number")
+			c.Abort()
+			return
+		}
+
+		// Convert float64 to uint64
+		userID := uint64(userIDFloat)
 
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {

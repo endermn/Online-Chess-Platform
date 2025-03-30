@@ -40,8 +40,8 @@ const LoginPage = () => {
                     })
                 })
                 console.log(response);
-                if (response.status != 200) {
-                    throw new Error("Login failed");
+                if (response.status == 200) {
+                    navigate("/home")
                 }
 
             } catch (err) {
@@ -54,7 +54,6 @@ const LoginPage = () => {
 
         fetchWithCredentials()
         
-        navigate("/home")
     };
 
 

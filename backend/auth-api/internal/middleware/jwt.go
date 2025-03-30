@@ -35,12 +35,10 @@ func ExtractJWTPayload(tokenString string) (map[string]interface{}, error) {
 func VerifyToken(tokenString string) error {
 	keyString := config.GetEnv("PEM_KEY")
 	privateKeyPEM := []byte(strings.ReplaceAll(keyString, "\\n", "\n"))
-
 	privateKey, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
 	if err != nil {
 		return err
 	}
-
 	publicKey := &privateKey.PublicKey
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -49,6 +47,7 @@ func VerifyToken(tokenString string) error {
 		}
 		return publicKey, nil
 	})
+
 	if err != nil {
 		return err
 	}

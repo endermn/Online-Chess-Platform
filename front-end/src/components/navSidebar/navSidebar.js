@@ -15,70 +15,39 @@ import { useNavigate } from "react-router-dom";
 import defaultImage from "../../assets/default_pfp.webp"
 
 export default function NavSidebar() {
-    const [profile, setProfile] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    const [currentPath, setCurrentPath] = useState('');
-
-    const navigate = useNavigate();
-    
-    useEffect(() => {
-        const path = window.location.pathname;
-        setCurrentPath(path);
-
-        const fetchProfileData = async () => {
-            try {
-                const profileResponse = await fetch('http://localhost:8080/profile', {
-                    method: 'GET',
-                    credentials: 'include' 
-                });
-
-                const statsResponse = await fetch('http://localhost:8080/user/stats', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-
-                if (!profileResponse.ok || !statsResponse.ok) {
-                    throw new Error('Failed to fetch profile data');
-                }
-
-                const profileData = await profileResponse.json();
-                const statsData = await statsResponse.json();
-
-                setProfile({
-                    ...profileData,
-                    ...statsData
-                });
-
-                setIsLoading(false);
-            } catch (err) {
-                setError(err.message);
-                setIsLoading(false);
+    const navigate = useNavigate()
+    const handleLogout = async (e) => {
+        e.preventDefault(); // Prevent default link behavior
+        
+        try {
+            const response = await fetch('http://localhost:8080/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                // Clear any local storage data if needed
+                localStorage.removeItem("profile");
+                
+                // Redirect to home/login page
+                navigate('/');
+            } else {
+                console.error('Logout failed');
             }
-        };
+        } catch (err) {
+            console.error('Error during logout:', err);
+        }
+    };
+    console.log("NavSidebar component mounted");
 
-        fetchProfileData();
-    }, []);
-    
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
-
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
-
-    if (!profile) {
-        return <div>No profile data available</div>;
-    }
+    const profile = JSON.parse(localStorage.getItem("profile"))
 
 
-    // Calculate win rate safely
-    const winRate = profile.TotalGames > 0 
-        ? Math.round((profile.GamesWon / profile.TotalGames) * 100) 
+    const currentPath = window.location.path
+    const winRate = profile.TotalGames > 0
+        ? Math.round((profile.GamesWon / profile.TotalGames) * 100)
         : 0;
-    
+
     // Determine player status based on rating
     const getPlayerStatus = (rating) => {
         if (rating >= 1400) return { text: "Advanced", color: "#198754" };
@@ -87,13 +56,12 @@ export default function NavSidebar() {
     };
 
     const maxRating = Math.max(
-        profile.BulletRating, 
-        profile.BlitzRating, 
-        profile.RapidRating, 
+        profile.BulletRating,
+        profile.BlitzRating,
+        profile.RapidRating,
         profile.ClassicalRating
     );
     profile.maxRating = maxRating
-    localStorage.setItem("profile", JSON.stringify(profile))
 
 
     const playerStatus = getPlayerStatus(maxRating);
@@ -106,7 +74,7 @@ export default function NavSidebar() {
         { path: "/news", icon: FaNewspaper, text: "News" },
         { path: "/boardeditor", icon: FaEdit, text: "Board Editor" }
     ];
-    
+
     return (
         <Col sm={3} md={2} className={`d-none d-sm-block ${styles.sidebar}`}>
             <Navbar variant="dark" expand="sm" className={`${styles.profileSidebar} flex-column`}>
@@ -119,13 +87,13 @@ export default function NavSidebar() {
                         />
                         <div className={styles.statusIndicator}></div>
                     </div>
-                    
+
                     <div className={styles.profileInfo}>
                         <div className={styles.profileName}>
                             {profile.FullName}
                         </div>
-                        <Badge 
-                            bg="transparent" 
+                        <Badge
+                            bg="transparent"
                             pill
                             className={styles.playerStatusBadge}
                             style={{ color: playerStatus.color, border: `1px solid ${playerStatus.color}` }}
@@ -134,45 +102,45 @@ export default function NavSidebar() {
                         </Badge>
                     </div>
                 </div>
-                
+
                 <div className={styles.statsContainer}>
                     <div className={styles.ratingContainer}>
                         <div className={styles.ratingLabel}>Rating</div>
                         <div className={styles.ratingValue}>{maxRating}</div>
                     </div>
-                    
+
                     <div className={styles.winRateContainer}>
                         <div className={styles.winRateHeader}>
                             <span className={styles.winRateLabel}>Win Rate</span>
                             <span className={styles.winRateValue}>{winRate}%</span>
                         </div>
-                        <ProgressBar 
-                            now={winRate} 
-                            variant={winRate > 50 ? "success" : "warning"} 
+                        <ProgressBar
+                            now={winRate}
+                            variant={winRate > 50 ? "success" : "warning"}
                             className={styles.winRateProgress}
                         />
                     </div>
                 </div>
-                
+
                 <div className={styles.navigationContainer}>
                     <div className={styles.navLabel}>Main Menu</div>
                     <Nav className={`flex-column ${styles.navLinks}`}>
                         {navLinks.map((link, index) => {
                             const Icon = link.icon;
                             const isActive = currentPath === link.path;
-                            
+
                             return (
-                                <Nav.Link 
+                                <Nav.Link
                                     key={index}
-                                    href={link.path} 
+                                    href={link.path}
                                     className={`${styles.navLink} ${isActive ? styles.activeLink : ''}`}
                                 >
                                     <Icon className={styles.navIcon} />
                                     <span>{link.text}</span>
                                     {link.badge && (
-                                        <Badge 
-                                            bg={link.badge.variant} 
-                                            pill 
+                                        <Badge
+                                            bg={link.badge.variant}
+                                            pill
                                             className={styles.navBadge}
                                         >
                                             {link.badge.text}
@@ -183,9 +151,13 @@ export default function NavSidebar() {
                         })}
                     </Nav>
                 </div>
-                
+
                 <div className={styles.footerContainer}>
-                    <Nav.Link href="/" className={styles.logoutLink}>
+                    <Nav.Link 
+                        href="#" 
+                        className={styles.logoutLink}
+                        onClick={handleLogout}
+                    >
                         <FaSignOutAlt className={styles.logoutIcon} />
                         <span>Log out</span>
                     </Nav.Link>

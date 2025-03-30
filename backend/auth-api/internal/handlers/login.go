@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/endermn/Thesis/backend/auth-api/internal/middleware"
 	"github.com/endermn/Thesis/backend/auth-api/internal/models"
@@ -18,6 +19,7 @@ type LoginParams struct {
 
 func LoginHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		var params LoginParams
 		c.Bind(&params)
 
@@ -47,8 +49,15 @@ func LoginHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		user.LastLogin = time.Now()
+
+		err = db.Save(&user).Error
+		if err != nil {
+			log.Printf("Failed to save user to database")
+		}
+
 		// expiration := time.Now().Add(24 * time.Hour)
-		c.SetCookie("sess_token", token, 3600*24, "/", "127.0.0.1:3000", false, true)
+		c.SetCookie("sess_token", token, 3600*24, "/", "", false, true)
 
 		// http.SetCookie(c.Writer, &http.Cookie{
 		// 	Name:     "sess_token",

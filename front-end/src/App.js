@@ -12,6 +12,7 @@ import PuzzlesPage from './pages/Puzzles/puzzles';
 import NewsPage from './pages/News/news';
 import BoardEditor from './pages/BoardEditor/boardeditor';
 import ChessGamePage from './pages/Game/game';
+import AdminPanel from './pages/Admin/admin';
 
 function App() {
 
@@ -32,6 +33,7 @@ function App() {
 					<Route path='game/blitz' element = {<ChessGamePage />} />
 					<Route path='game/rapid' element = {<ChessGamePage />} />
 					<Route path='game/classical' element = {<ChessGamePage />} />
+					<Route path='admin' element = {<AdminPanel />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Row,
@@ -19,7 +19,103 @@ import NavSidebar from '../../components/navSidebar/navSidebar';
 
 function HomePage() {
   const [activeTab, setActiveTab] = useState('home');
+  const [profile, setProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
+  // Function to fetch with retry logic
+  const fetchWithRetry = async (url, options, maxRetries = 5, delay = 2000) => {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error(`Failed to fetch from ${url}, status: ${response.status}`);
+    } catch (error) {
+      if (maxRetries <= 0) {
+        throw error;
+      }
+      console.log(`Retrying fetch to ${url} in ${delay}ms... (${maxRetries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return fetchWithRetry(url, options, maxRetries - 1, delay * 1.5);
+    }
+  };
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        // Try to fetch both resources with retry logic
+        const profileData = await fetchWithRetry(
+          'http://localhost:8080/profile', 
+          { method: 'GET', credentials: 'include' }
+        );
+        
+        const statsData = await fetchWithRetry(
+          'http://localhost:8080/user/stats', 
+          { method: 'GET', credentials: 'include' }
+        );
+
+        const fullProfile = { 
+          ...profileData, 
+          ...statsData, 
+          maxRating: Math.max(
+            profileData.BulletRating, 
+            profileData.BlitzRating, 
+            profileData.RapidRating, 
+            profileData.ClassicalRating
+          )
+        };
+        
+        localStorage.setItem("profile", JSON.stringify(fullProfile));
+        setProfile(fullProfile);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed after multiple retries:", error);
+        setError(error.message);
+        
+        // Schedule another retry after a longer delay
+        const retryDelay = Math.min(30000, 1000 * Math.pow(1.5, retryCount));
+        console.log(`Scheduling complete retry in ${retryDelay}ms...`);
+        
+        setTimeout(() => {
+          setRetryCount(prevCount => prevCount + 1);
+        }, retryDelay);
+      }
+    };
+
+    fetchProfileData();
+  }, [retryCount]); // Depend on retryCount to trigger new attempts
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading your profile... {retryCount > 0 ? `(Attempt ${retryCount + 1})` : ''}</p>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <h3>Having trouble connecting to the server</h3>
+        <p>{error}</p>
+        <p>Automatically retrying in a few seconds...</p>
+        <Button 
+          onClick={() => setRetryCount(prev => prev + 1)}
+          variant="primary"
+        >
+          Retry Now
+        </Button>
+      </div>
+    );
+  }
+
+  profile.maxRating = Math.max(profile.BulletRating, profile.BlitzRating, profile.RapidRating, profile.ClassicalRating);
 
   const mockProfile = {
     firstName: "Pesho",
@@ -34,14 +130,11 @@ function HomePage() {
     totalGamesDrawn: 5
   };
 
-  const profile = JSON.parse(localStorage.getItem("profile"))
-
   let winPercentage = 0;
   if (profile.TotalGames != 0) {
     winPercentage = Math.round((profile.GamesWon / profile.TotalGames) * 100);
   }
-  const ratingArr = [profile.BulletRating, profile.BlitzRating, profile.RapidRating, profile.ClassicalRating]
-
+  const ratingArr = [profile.BulletRating, profile.BlitzRating, profile.RapidRating, profile.ClassicalRating];
 
   const gameTypes = [
     {
@@ -73,7 +166,6 @@ function HomePage() {
       path: 'game/classical'
     }
   ];
-
 
   return (
     <div className={styles.homeContainer}>

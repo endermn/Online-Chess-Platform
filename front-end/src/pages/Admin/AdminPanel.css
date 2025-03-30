@@ -1,0 +1,91 @@
+/* AdminPanel.css */
+:root {
+    --dark-blue: #0d1b2a;
+    --medium-blue: #1b263b;
+    --light-blue: #415a77;
+    --accent-blue: #778da9;
+    --text-color: #e0e1dd;
+  }
+  
+  body {
+    background-color: var(--dark-blue);
+    color: var(--text-color);
+  }
+  
+  .admin-panel {
+    min-height: 100vh;
+    background-color: var(--dark-blue);
+  }
+  
+  .admin-navbar {
+    background-color: var(--medium-blue);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .admin-card {
+    background-color: var(--medium-blue);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .admin-card .card-header {
+    background-color: var(--light-blue);
+    color: var(--text-color);
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+  .admin-table {
+    background-color: var(--medium-blue);
+    color: var(--text-color);
+  }
+  
+  .admin-table thead th {
+    background-color: var(--light-blue);
+    border-color: var(--medium-blue);
+    color: white;
+  }
+  
+  .admin-table tbody tr:hover {
+    background-color: rgba(65, 90, 119, 0.5);
+  }
+  
+  .admin-modal .modal-content {
+    background-color: var(--medium-blue);
+    color: var(--text-color);
+  }
+  
+  .admin-modal .modal-header {
+    background-color: var(--light-blue);
+    color: white;
+    border-bottom: none;
+  }
+  
+  .admin-modal .modal-footer {
+    border-top: none;
+  }
+  
+  /* Custom button styles */
+  .btn-outline-info {
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
+  }
+  
+  .btn-outline-info:hover {
+    background-color: var(--accent-blue);
+    color: white;
+  }
+  
+  /* Spinner customization */
+  .spinner-border.text-info {
+    color: var(--accent-blue) !important;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .admin-table {
+      font-size: 0.85rem;
+    }
+  }

@@ -38,5 +38,12 @@ func setupRoutes(db *gorm.DB) *gin.Engine {
 	router.POST("/logout", handlers.LogoutHandler)
 	router.POST("/game/create", middleware.AuthMiddleware(), handlers.GameHandler(db))
 
+	adminRoutes := router.Group("/admin")
+	adminRoutes.Use(handlers.AdminAuthMiddleware(db))
+	{
+		adminRoutes.GET("/users", handlers.GetUsers(db))
+		adminRoutes.DELETE("/users/:id", handlers.DeleteUser(db)) // Note the :id parameter
+	}
+
 	return router
 }

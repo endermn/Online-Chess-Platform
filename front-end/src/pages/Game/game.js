@@ -1,25 +1,243 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ChessGame from '../../components/chess/chess.js'
 
 const ChessGamePage = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [playerColor, setPlayerColor] = useState('both'); // 'white', 'black', or 'both' for local play
+  const [gameStatus, setGameStatus] = useState('');
+  const [gameId, setGameId] = useState(null);
+  const [opponentId, setOpponentId] = useState(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [pollingInterval, setPollingInterval] = useState(null);
   const chessGameRef = useRef(null);
   
-  // Start a new game
-  const startGame = () => {
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
+
+  // Start game against online opponent
+  const startOnlineGame = async () => {
+    try {
+      setWaitingForOpponent(true);
+      setGameStatus('Connecting to server...');
+      
+      // Get JWT token from localStorage or your auth system
+      const token = localStorage.getItem('jwt_token');
+      
+      // Make POST request to create a new game
+      const response = await fetch('http://localhost:8080/game/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Use Authorization header for JWT
+        },
+        body: JSON.stringify({
+          // Add any required request body parameters
+          gameMode: playerColor === 'white' ? 'player_vs_player' : 'player_vs_bot'
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Set game ID and status
+      setGameId(data.gameID || data.id);
+      setGameStatus('Waiting for opponent to join...');
+      
+      // Begin polling for game status if waiting for opponent
+      startPollingGameStatus(data.gameID || data.id);
+      
+    } catch (error) {
+      console.error('Error starting game:', error);
+      setGameStatus('Failed to connect to server');
+      setWaitingForOpponent(false);
+    }
+  };
+  
+  // Poll for game status updates
+  const startPollingGameStatus = (gameId) => {
+    const token = localStorage.getItem('jwt_token');
+    
+    // Clear any existing polling
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+    
+    // Set up polling every 2 seconds
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/game/status/${gameId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Check if game has started
+        if (data.status === 'in_progress' || data.gameStatus === 'in_progress') {
+          clearInterval(interval);
+          setPollingInterval(null);
+          setWaitingForOpponent(false);
+          setGameStarted(true);
+          setGameStatus('Game started!');
+          setOpponentId(data.opponentId || data.opponentUserID);
+          
+          // Determine player color based on server response if available
+          if (data.playerColor) {
+            setPlayerColor(data.playerColor);
+          }
+        }
+      } catch (error) {
+        console.error('Error polling game status:', error);
+      }
+    }, 2000);
+    
+    setPollingInterval(interval);
+  };
+  
+  // Start a local game
+  const startLocalGame = () => {
     setGameStarted(true);
+  };
+  
+  // Start game based on selected mode
+  const startGame = () => {
+    if (playerColor === 'both') {
+      startLocalGame();
+    } else {
+      startOnlineGame();
+    }
+  };
+  
+  // Send a move to the server
+  const sendMove = async (from, to) => {
+    if (!gameId) return;
+    
+    try {
+      const token = localStorage.getItem('jwt_token');
+      
+      const response = await fetch(`http://localhost:8080/game/move/${gameId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          from: from,
+          to: to
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Handle server response
+      // This might include validation of the move or opponent's response move
+      
+      // Start polling for opponent's move
+      if (!pollingInterval) {
+        startPollingMoves(gameId);
+      }
+      
+    } catch (error) {
+      console.error('Error sending move:', error);
+      setGameStatus('Failed to send move');
+    }
+  };
+  
+  // Poll for opponent's moves
+  const startPollingMoves = (gameId) => {
+    const token = localStorage.getItem('jwt_token');
+    
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/game/${gameId}/moves?last=${Date.now() - 10000}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Check if there are new moves
+        if (data.moves && data.moves.length > 0) {
+          // Process the latest move from opponent
+          const latestMove = data.moves[data.moves.length - 1];
+          
+          // Only process opponent's moves
+          if (latestMove.playerId !== localStorage.getItem('user_id')) {
+            if (chessGameRef.current) {
+              chessGameRef.current.handleOpponentMove(latestMove.from, latestMove.to);
+            }
+          }
+        }
+        
+        // Check if game is over
+        if (data.gameStatus === 'finished') {
+          clearInterval(interval);
+          setPollingInterval(null);
+          setGameStatus(`Game over: ${data.result}`);
+        }
+        
+      } catch (error) {
+        console.error('Error polling for moves:', error);
+      }
+    }, 1000);
+    
+    setPollingInterval(interval);
   };
   
   // Return to menu
   const backToMenu = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+    
+    // If in an online game, notify the server
+    if (gameId && playerColor !== 'both') {
+      const token = localStorage.getItem('jwt_token');
+      
+      fetch(`http://localhost:8080/game/forfeit/${gameId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).catch(error => {
+        console.error('Error forfeiting game:', error);
+      });
+    }
+    
     setGameStarted(false);
+    setWaitingForOpponent(false);
+    setGameStatus('');
+    setGameId(null);
+    setOpponentId(null);
   };
   
-  // Reset the current game
+  // Reset the current game (only for local games)
   const resetGame = () => {
     if (chessGameRef.current) {
-      // The component should handle resetting to initial position
       chessGameRef.current.resetBoard?.() || window.location.reload();
     }
   };
@@ -42,7 +260,7 @@ const ChessGamePage = () => {
           </p>
         </header>
         
-        {!gameStarted ? (
+        {!gameStarted && !waitingForOpponent ? (
           <div className="menu-container" style={{
             maxWidth: '600px',
             margin: '0 auto',
@@ -112,6 +330,36 @@ const ChessGamePage = () => {
               </button>
             </div>
           </div>
+        ) : waitingForOpponent ? (
+          <div className="waiting-container" style={{
+            maxWidth: '600px',
+            margin: '0 auto',
+            background: 'rgba(29, 53, 87, 0.8)',
+            borderRadius: '10px',
+            padding: '2rem',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ color: '#6cb4ee' }}>Finding Opponent</h2>
+            <div className="spinner-border text-light my-4" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p style={{ color: '#8da9c4', fontSize: '1.2rem' }}>{gameStatus}</p>
+            {gameId && (
+              <p style={{ color: '#8da9c4' }}>Game ID: {gameId}</p>
+            )}
+            <button 
+              onClick={backToMenu}
+              className="btn mt-4"
+              style={{
+                backgroundColor: 'rgba(93, 156, 237, 0.2)',
+                color: '#8da9c4',
+                border: '1px solid #4e89ae'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
         ) : (
           <div className="game-container">
             <div className="row">
@@ -127,25 +375,30 @@ const ChessGamePage = () => {
                     <h2 style={{ color: '#6cb4ee', margin: 0 }}>
                       {playerColor === 'both' ? 'Local Game' : `Playing as ${playerColor}`}
                     </h2>
-                    <button
-                      onClick={backToMenu}
-                      className="btn btn-outline-light"
-                      style={{ borderColor: '#8da9c4', color: '#8da9c4' }}
-                    >
-                      Back to Menu
-                    </button>
+                    <div>
+                      {gameStatus && (
+                        <span className="me-3" style={{ color: '#8da9c4' }}>{gameStatus}</span>
+                      )}
+                      <button
+                        onClick={backToMenu}
+                        className="btn btn-outline-light"
+                        style={{ borderColor: '#8da9c4', color: '#8da9c4' }}
+                      >
+                        Back to Menu
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="d-flex justify-content-center">
                     <ChessGame 
                       ref={chessGameRef}
                       squareSize={60}
-                      // You might need to modify your component to support orientation
-                      // orientation={playerColor === 'black' ? 'black' : 'white'}
+                      onMove={playerColor !== 'both' ? sendMove : undefined}
+                      orientation={playerColor === 'black' ? 'black' : 'white'}
                     />
                   </div>
                   
-                  {/* <div className="mt-3 d-flex justify-content-center">
+                  <div className="mt-3 d-flex justify-content-center">
                     <div style={{
                       backgroundColor: 'rgba(29, 53, 87, 0.7)',
                       padding: '0.75rem 1.5rem',
@@ -155,7 +408,7 @@ const ChessGamePage = () => {
                       {playerColor === 'both' ? 'Pass the device to your opponent after each move' : 
                        `You are playing as ${playerColor}`}
                     </div>
-                  </div> */}
+                  </div>
                 </div>
                 
                 <div style={{
@@ -174,6 +427,7 @@ const ChessGamePage = () => {
                         border: '1px solid #4e89ae'
                       }}
                       onClick={resetGame}
+                      disabled={playerColor !== 'both'}
                     >
                       Reset Game
                     </button>

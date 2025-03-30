@@ -20,6 +20,7 @@ type SignupParams struct {
 
 func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		var params SignupParams
 		err := c.BindJSON(&params)
 		if err != nil {
@@ -90,7 +91,7 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 			log.Print(err)
 			return
 		}
-		c.SetCookie("sess_token", token, 3600*24, "/", "localhost", false, true)
+		c.SetCookie("sess_token", token, 3600*24, "/", "", false, true)
 
 		c.Header("Content-Type", "application/json")
 		c.String(http.StatusCreated, "Cookie has been set")
