@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/endermn/Thesis/backend/auth-api/internal/middleware"
 	"github.com/endermn/Thesis/backend/auth-api/internal/models"
@@ -21,6 +23,15 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+type Message struct {
+	Type      string    `json:"type"`
+	Text      string    `json:"message"`
+	Move      string    `json:"move"`
+	Promotion string    `json:"promotion"`
+	GameID    string    `json:"gameID"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 type ActiveSession struct {
 	SessionID   uint64
 	GameID      uint64
@@ -31,7 +42,7 @@ type ActiveSession struct {
 }
 
 type GameManager struct {
-	sessions       map[uint64]*ActiveSession // Map of sessionID to ActiveSession
+	sessions       map[uint64]*ActiveSession
 	pendingSession *ActiveSession
 	mutex          sync.Mutex
 }
@@ -50,12 +61,12 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie("sess_token")
 		if err != nil {
+			log.Print(err)
 			c.String(http.StatusUnauthorized, "failed to find cookie")
 			c.Abort()
 			return
 		}
 
-		// Extract claims from JWT
 		claims, err := middleware.ExtractJWTPayload(token)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Unexpected error occurred")
@@ -64,14 +75,6 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		err = middleware.VerifyToken(token)
-		if err != nil {
-			c.String(http.StatusUnauthorized, "Invalid token: %v", err)
-			c.Abort()
-			return
-		}
-
-		// Get user ID from claims
 		idValue, ok := claims["userID"]
 		if !ok {
 			c.String(http.StatusUnauthorized, "Invalid token: missing user ID")
@@ -79,7 +82,6 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Convert ID to float64 (JSON numbers are represented as float64)
 		userIDFloat, ok := idValue.(float64)
 		if !ok {
 			c.String(http.StatusUnauthorized, "Invalid token: user ID is not a number")
@@ -87,7 +89,6 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Convert float64 to uint64
 		userID := uint64(userIDFloat)
 
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -131,23 +132,36 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			gameManager.pendingSession.Player2ID = userID
 			gameManager.pendingSession.Player2Conn = conn
 
+			colorNum := rand.IntN(1)
+			var color string
+			var oppositeColor string
+			if colorNum == 0 {
+				color = "white"
+				oppositeColor = "black"
+			} else {
+				color = "black"
+				oppositeColor = "white"
+			}
+
 			gameManager.pendingSession.Player1Conn.WriteJSON(map[string]string{
 				"type":    "game_start",
 				"message": "Player 2 has joined! Game is starting.",
 				"gameID":  strconv.FormatUint(game.PublicID, 10),
+				"color":   color,
 			})
 
 			gameManager.pendingSession.Player2Conn.WriteJSON(map[string]string{
 				"type":    "game_start",
 				"message": "You've joined a game! Game is starting.",
 				"gameID":  strconv.FormatUint(game.PublicID, 10),
+				"color":   oppositeColor,
 			})
 
 			gameManager.sessions[sessionRecord.ID] = gameManager.pendingSession
 
 			gameManager.pendingSession = nil
 
-			go handleGameCommunication(db, conn, sessionRecord.ID, userID)
+			go handleGameCommunication(db, conn, game.ID, sessionRecord.ID, userID)
 		} else {
 			newGame := models.Game{
 				UserID:       userID,
@@ -197,31 +211,59 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 				"gameID":  strconv.FormatUint(newGame.PublicID, 10),
 			})
 
-			go handleGameCommunication(db, conn, newSessionRecord.ID, userID)
+			go handleGameCommunication(db, conn, newGame.ID, newSessionRecord.ID, userID)
 		}
 	}
 }
 
-func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, sessionID uint64, userID uint64) {
+func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, gameID uint64, sessionID uint64, userID uint64) {
 	defer func() {
 		conn.Close()
 		handlePlayerDisconnect(db, conn, sessionID, userID)
 	}()
 
 	for {
-		messageType, message, err := conn.ReadMessage()
+		var msg Message
+		err := conn.ReadJSON(&msg)
 		if err != nil {
-			log.Printf("Error reading message: %v", err)
-			break
+			log.Printf("Failed to read message: %v", err)
+			return
+		}
+		log.Printf("Received message from session %d, user %d: %s", sessionID, userID, msg.Text)
+		if msg.Type == "cancel" {
+			delete(gameManager.sessions, sessionID)
 		}
 
-		log.Printf("Received message from session %d, user %d: %s", sessionID, userID, message)
+		if msg.Type == "move" {
+			gameManager.mutex.Lock()
+			session, exists := gameManager.sessions[sessionID]
+			if !exists {
+				gameManager.mutex.Unlock()
+				log.Printf("Session %d not found", sessionID)
+				return
+			}
 
-		// For now, just echo the message back
-		if err := conn.WriteMessage(messageType, message); err != nil {
-			log.Printf("Error writing message: %v", err)
-			break
+			if session.Player1ID == userID {
+				if session.Player2Conn != nil {
+					if err := session.Player2Conn.WriteJSON(msg); err != nil {
+						log.Printf("Error writing message to player 2: %v", err)
+					}
+				}
+			} else if session.Player2ID == userID {
+				if session.Player1Conn != nil {
+					if err := session.Player1Conn.WriteJSON(msg); err != nil {
+						log.Printf("Error writing message to player 1: %v", err)
+					}
+				}
+			}
+			gameManager.mutex.Unlock()
+		} else {
+			if err := conn.WriteJSON(msg); err != nil {
+				log.Printf("Error writing message: %v", err)
+				break
+			}
 		}
+
 	}
 }
 

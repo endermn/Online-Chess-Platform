@@ -3,11 +3,15 @@ import { Container, Row, Col, Form, Button, Badge } from 'react-bootstrap';
 import styles from './news.module.css';
 import NavSidebar from '../../components/navSidebar/navSidebar';
 import News from '../../components/news/news';
+import axios from 'axios';
 
 const NewsPage = () => {
+  const [news, setNews] = useState([]);
   const [filteredNews, setFilteredNews] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const mockProfile = {
     firstName: "Pesho",
@@ -21,97 +25,78 @@ const NewsPage = () => {
     totalGamesLost: 72,
   };
   
-  // Enhanced news data with additional properties
-  const news = [
-    {
-      title: "Tosho won first place in Bulgaria",
-      author: "Bai Ganio",
-      content: "Tosho has won first place in the Bulgarian kids tournament. This prestigious achievement marks a significant milestone in his chess career. The tournament featured 32 participants from across the country, and Tosho demonstrated exceptional skill throughout all rounds.",
-      category: "Tournaments",
-      date: "Feb 24, 2025",
-      image: "https://images.unsplash.com/photo-1560174038-da43ac74f01b",
-      readTime: 3,
-      likes: 42
-    },
-    {
-      title: "New chess federation rules announced for 2025",
-      author: "Chess Federation",
-      content: "The International Chess Federation has announced new tournament rules that will take effect starting March 2025. These changes aim to improve competition fairness and player experience.",
-      category: "Rules",
-      date: "Feb 22, 2025",
-      readTime: 5,
-      likes: 17
-    },
-    {
-      title: "Weekly chess puzzle challenge now available",
-      author: "Chess Academy",
-      content: "Test your skills with our weekly chess puzzle challenge! This week features a particularly tricky endgame scenario that has stumped even master-level players.",
-      category: "Puzzles",
-      date: "Feb 20, 2025",
-      image: "https://images.unsplash.com/photo-1586165368502-1bad197a6461",
-      readTime: 2,
-      likes: 28
-    },
-    {
-      title: "Chess strategy: Mastering the Sicilian Defense",
-      author: "Grandmaster Ivanov",
-      content: "Learn the key principles and tactical motifs of the Sicilian Defense, one of the most popular responses to e4. This comprehensive guide covers main variations and common traps.",
-      category: "Strategy",
-      date: "Feb 18, 2025",
-      readTime: 8,
-      likes: 56
-    },
-    {
-      title: "Interview with rising star Anna Petrova",
-      author: "Chess Monthly",
-      content: "We sat down with 14-year-old prodigy Anna Petrova to discuss her recent tournament victories and her approach to chess training. Her insights on game preparation are invaluable.",
-      category: "Interviews",
-      date: "Feb 15, 2025",
-      readTime: 6,
-      likes: 33
-    },
-    {
-      title: "Historic chess sets exhibition opens in Sofia",
-      author: "Cultural News",
-      content: "A new exhibition featuring historic chess sets from the 15th to 20th centuries has opened at the National Museum. The collection includes pieces once owned by royal families.",
-      category: "Events",
-      date: "Feb 12, 2025",
-      readTime: 4,
-      likes: 19
-    },
-    {
-      title: "Chess AI breakthrough: New algorithm surpasses previous champions",
-      author: "Tech Review",
-      content: "Researchers have developed a new chess AI that has surpassed all previous automated chess engines in benchmark tests. The system uses a novel approach to position evaluation.",
-      category: "Technology",
-      date: "Feb 10, 2025",
-      readTime: 7,
-      likes: 48
-    },
-    {
-      title: "Chess Club Championship results announced",
-      author: "Local News",
-      content: "The annual Chess Club Championship concluded yesterday with surprising results. Several newcomers managed to upset higher-rated opponents, reshuffling the club rankings.",
-      category: "Tournaments",
-      date: "Feb 8, 2025",
-      readTime: 3,
-      likes: 22
-    }
-  ];
-
+  // Categories for filtering
   const categories = ['All', 'Tournaments', 'Strategy', 'Rules', 'Events', 'Interviews', 'Technology', 'Puzzles'];
 
+  // Fetch news from API
   useEffect(() => {
-    // Filter news based on search term and active category
-    const results = news.filter(item => {
-      const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           item.content.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
-      return matchesSearch && matchesCategory;
-    });
+    const fetchNews = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:8080/news');
+        
+        // Transform the API data to match the expected format
+        const transformedNews = response.data.map(item => ({
+          id: item.ID,
+          publicId: item.PublicID,
+          title: item.Title,
+          author: item.Author,
+          content: item.Contents,
+          // Set default values for properties not in the API response
+          category: getCategoryFromContent(item.Contents), // Derive category from content
+          date: new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}),
+          readTime: Math.ceil(item.Contents.length / 500), // Estimate read time based on content length
+          likes: Math.floor(Math.random() * 50) + 5 // Random likes for demo
+        }));
+        
+        setNews(transformedNews);
+        setFilteredNews(transformedNews);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching news:', err);
+        setError('Failed to fetch news. Please try again later.');
+        setLoading(false);
+      }
+    };
     
-    setFilteredNews(results);
-  }, [searchTerm, activeCategory]);
+    fetchNews();
+  }, []);
+  
+  // Function to derive category from content (simple implementation)
+  const getCategoryFromContent = (content) => {
+    const contentLower = content.toLowerCase();
+    if (contentLower.includes('tournament') || contentLower.includes('championship') || contentLower.includes('won')) {
+      return 'Tournaments';
+    } else if (contentLower.includes('strategy') || contentLower.includes('defense') || contentLower.includes('attack')) {
+      return 'Strategy';
+    } else if (contentLower.includes('rule') || contentLower.includes('regulation')) {
+      return 'Rules';
+    } else if (contentLower.includes('event') || contentLower.includes('exhibition')) {
+      return 'Events';
+    } else if (contentLower.includes('interview') || contentLower.includes('speaks')) {
+      return 'Interviews';
+    } else if (contentLower.includes('technology') || contentLower.includes('tech') || contentLower.includes('ai')) {
+      return 'Technology';
+    } else if (contentLower.includes('puzzle') || contentLower.includes('challenge')) {
+      return 'Puzzles';
+    } else {
+      return categories[Math.floor(Math.random() * (categories.length - 1)) + 1]; // Random category except 'All'
+    }
+  };
+
+  // Filter news based on search term and active category
+  useEffect(() => {
+    if (news.length > 0) {
+      const results = news.filter(item => {
+        const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            item.content.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
+        return matchesSearch && matchesCategory;
+      });
+      
+      setFilteredNews(results);
+    }
+  }, [searchTerm, activeCategory, news]);
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -171,9 +156,24 @@ const NewsPage = () => {
           
           {/* News Content */}
           <div className={styles.newsContainer}>
-            {filteredNews.length > 0 ? (
+            {loading ? (
+              <div className={styles.loadingState}>
+                <p>Loading news articles...</p>
+              </div>
+            ) : error ? (
+              <div className={styles.errorState}>
+                <h3>Error</h3>
+                <p>{error}</p>
+                <Button 
+                  variant="outline-success" 
+                  onClick={() => window.location.reload()}
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : filteredNews.length > 0 ? (
               filteredNews.map((item, index) => (
-                <News key={index} index={index} item={item} />
+                <News key={item.id || index} index={index} item={item} />
               ))
             ) : (
               <div className={styles.noResults}>

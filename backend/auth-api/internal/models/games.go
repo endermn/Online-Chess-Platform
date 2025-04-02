@@ -25,8 +25,7 @@ type Game struct {
 	OpponentUserID uint64
 	GameStatus     string `gorm:"type:game_status;not null"`
 	GameState      string `gorm:"type:game_state;not null"`
-	// GameType       string `gorm:"type:game_type;not null"`
-	GamePoints int `gorm:"not null;check:game_points > 0"`
+	GamePoints     int    `gorm:"not null;check:game_points > 0"`
 
 	User User `gorm:"foreignKey:UserID"`
 }

@@ -15,7 +15,6 @@ import {
   X,
   ArrowLeftRight
 } from 'lucide-react';
-import ChessGame from '../../components/chess/chess';
 import styles from './boardEditor.module.css';
 import Chessboard from '../../components/chessboard/chessboard';
 
@@ -78,11 +77,13 @@ const BoardEditor = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
   const [squareSize, setSquareSize] = useState(60);
+  const [chess, setChess] = useState(null);
   
   useEffect(() => {
     try {
-      const chess = new Chess(currentFen);
-      setTurn(chess.turn());
+      const newChess = new Chess(currentFen);
+      setChess(newChess);
+      setTurn(newChess.turn());
       
       // Update castling rights
       const fenParts = currentFen.split(' ');
@@ -157,37 +158,47 @@ const BoardEditor = () => {
   };
   
   const handleBoardClick = (square) => {
-    if (!selectedPiece) return;
+    if (!selectedPiece || !chess) return;
     
     try {
-      const chess = new Chess(currentFen);
+      // Clone the current chess position to avoid mutation
+      const newChess = new Chess(chess.fen());
       
       if (selectedPiece === 'delete') {
         // Check if there's a piece at the square
-        const piece = chess.get(square);
-        if (piece) {
-          chess.remove(square);
-          const newFen = chess.fen();
+        const squarePiece = newChess.get(square);
+        if (squarePiece) {
+          newChess.remove(square);
+          const newFen = newChess.fen();
           setCurrentFen(newFen);
           setDisplayFen(newFen);
+          showMessage(`Piece removed from ${square}`, 'info');
         }
       } else {
-        // Place piece
-        // First remove any existing piece at that square
-        const existingPiece = chess.get(square);
+        // Check if there's already a piece at this square and remove it
+        const existingPiece = newChess.get(square);
         if (existingPiece) {
-          chess.remove(square);
+          newChess.remove(square);
         }
         
-        // Set the new piece
+        // Determine the piece type and color
         const pieceColor = selectedPiece === selectedPiece.toUpperCase() ? 'w' : 'b';
         const pieceType = selectedPiece.toLowerCase();
         
-        chess.put({ type: pieceType, color: pieceColor }, square);
+        // Place the new piece
+        newChess.put({ type: pieceType, color: pieceColor }, square);
         
-        const newFen = chess.fen();
+        const newFen = newChess.fen();
         setCurrentFen(newFen);
         setDisplayFen(newFen);
+        
+        const colorName = pieceColor === 'w' ? 'White' : 'Black';
+        const pieceName = {
+          'k': 'King', 'q': 'Queen', 'r': 'Rook', 
+          'b': 'Bishop', 'n': 'Knight', 'p': 'Pawn'
+        }[pieceType];
+        
+        showMessage(`${colorName} ${pieceName} placed on ${square}`, 'success');
       }
     } catch (e) {
       console.error("Error handling board click:", e);
@@ -309,6 +320,9 @@ const BoardEditor = () => {
                   <Chessboard
                     fen={currentFen} 
                     squareSize={squareSize}
+                    onSquareClick={handleBoardClick}
+                    allowMoves={false}
+                    editorMode={true}
                   />
                 </div>
               </Card.Body>
@@ -527,6 +541,16 @@ const BoardEditor = () => {
               <Card.Body>
                 <p className={styles.instructions}>
                   Select a piece and click on the board to place it.
+                  {selectedPiece && selectedPiece !== 'delete' && (
+                    <span className="ms-2 fw-bold">
+                      Selected: {pieces.find(p => p.id === selectedPiece)?.name}
+                    </span>
+                  )}
+                  {selectedPiece === 'delete' && (
+                    <span className="ms-2 fw-bold text-danger">
+                      Delete mode active
+                    </span>
+                  )}
                 </p>
                 
                 <div className={styles.pieceSelector}>
