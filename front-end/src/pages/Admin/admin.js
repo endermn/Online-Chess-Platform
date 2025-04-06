@@ -118,7 +118,7 @@ const AdminPanel = () => {
                         <th>Full Name</th>
                         <th>Email</th>
                         <th>Status</th>
-                        <th>Admin</th>
+                        <th>Type</th>
                         <th>Created</th>
                         <th>Last Login</th>
                         <th>Actions</th>
@@ -144,8 +144,8 @@ const AdminPanel = () => {
                               <Badge bg="info">User</Badge>
                             )}
                           </td>
-                          <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                          <td>{new Date(user.lastLogin).toLocaleDateString()}</td>
+                          <td>{new Date(user.createdAt).toDateString()}</td>
+                          <td>{new Date(user.lastLogin).toDateString()}</td>
                           <td>
                             <Button 
                               variant="danger" 

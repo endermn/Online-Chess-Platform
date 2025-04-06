@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"math/rand/v2"
 	"net/http"
@@ -28,6 +30,7 @@ type Message struct {
 	Text      string    `json:"message"`
 	Move      string    `json:"move"`
 	Promotion string    `json:"promotion"`
+	GameType  string    `json:"gameType"`
 	GameID    string    `json:"gameID"`
 	Timestamp time.Time `json:"timestamp"`
 }
@@ -59,6 +62,18 @@ var gameManager = &GameManager{
 
 func GameHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		if err != nil {
+			log.Printf("Failed to upgrade connection: %v", err)
+			return
+		}
+
+		log.Printf("Client connected: %s", conn.RemoteAddr())
+
+		gameManager.mutex.Lock()
+		defer gameManager.mutex.Unlock()
+
 		token, err := c.Cookie("sess_token")
 		if err != nil {
 			log.Print(err)
@@ -90,18 +105,7 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		userID := uint64(userIDFloat)
-
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-		if err != nil {
-			log.Printf("Failed to upgrade connection: %v", err)
-			return
-		}
-
-		log.Printf("Client connected: %s", conn.RemoteAddr())
-
-		gameManager.mutex.Lock()
-		defer gameManager.mutex.Unlock()
-
+		log.Printf("Initial userID: %v", userID)
 		if gameManager.pendingSession != nil {
 			var game models.Game
 			if err := db.First(&game, gameManager.pendingSession.GameID).Error; err != nil {
@@ -132,7 +136,7 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			gameManager.pendingSession.Player2ID = userID
 			gameManager.pendingSession.Player2Conn = conn
 
-			colorNum := rand.IntN(1)
+			colorNum := rand.IntN(2)
 			var color string
 			var oppositeColor string
 			if colorNum == 0 {
@@ -147,6 +151,7 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 				"type":    "game_start",
 				"message": "Player 2 has joined! Game is starting.",
 				"gameID":  strconv.FormatUint(game.PublicID, 10),
+				"userID":  fmt.Sprintf("%v", gameManager.pendingSession.Player1ID),
 				"color":   color,
 			})
 
@@ -154,6 +159,7 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 				"type":    "game_start",
 				"message": "You've joined a game! Game is starting.",
 				"gameID":  strconv.FormatUint(game.PublicID, 10),
+				"userID":  fmt.Sprintf("%v", gameManager.pendingSession.Player2ID),
 				"color":   oppositeColor,
 			})
 
@@ -234,7 +240,118 @@ func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, gameID uint64, s
 			delete(gameManager.sessions, sessionID)
 		}
 
-		if msg.Type == "move" {
+		switch msg.Type {
+		case "mate":
+			var game models.Game
+			result := db.First(&game, gameID)
+			if result.Error != nil {
+				if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+					log.Printf("Game not found!")
+					return
+				}
+				log.Printf("Failed to get game: %v", err)
+				return
+			}
+			if msg.Text == "White" {
+				game.GameState = models.GameStateWin
+			} else {
+				game.GameState = models.GameStateFailure
+			}
+			game.GameStatus = models.GameStatusFinished
+
+			if err := db.Save(&game).Error; err != nil {
+				log.Printf("Failed while saving game: %v", err)
+				return
+			}
+
+			var stats models.Statistic
+			result = db.Where("user_id = ?", game.UserID).First(&stats)
+			if result.Error != nil {
+				if result.Error == gorm.ErrRecordNotFound {
+					stats = models.Statistic{
+						UserID: game.UserID,
+					}
+				} else {
+					log.Printf("Failed to retrieve user stats: %v", result.Error)
+					return
+				}
+			}
+
+			stats.TotalGames++
+			userWin := game.GameState == models.GameStateWin
+			userMult := 0
+			if userWin {
+				userMult = 1
+				stats.GamesWon++
+			} else {
+				userMult = -1
+				stats.GamesLost++
+			}
+
+			switch msg.GameType {
+			case "bullet":
+				stats.BulletRating += game.GamePoints * userMult
+			case "blitz":
+				stats.BlitzRating += game.GamePoints * userMult
+			case "rapid":
+				stats.RapidRating += game.GamePoints * userMult
+			case "classical":
+				stats.ClassicalRating += game.GamePoints * userMult
+			}
+
+			log.Printf("User stats: %v", stats)
+
+			if err := db.Save(&stats).Error; err != nil {
+				log.Printf("Failed to update user stats: %v", err)
+				return
+			}
+
+			// Update the opponent's statistics
+			var oppStats models.Statistic
+			oppResult := db.Where("user_id = ?", game.OpponentUserID).First(&oppStats)
+			if oppResult.Error != nil {
+				if oppResult.Error == gorm.ErrRecordNotFound {
+					oppStats = models.Statistic{
+						UserID: game.OpponentUserID,
+					}
+				} else {
+					log.Printf("Failed to retrieve opponent stats: %v", oppResult.Error)
+					return
+				}
+			}
+
+			// Update opponent stats
+			oppStats.TotalGames++
+			oppWin := game.GameState != models.GameStateWin // Opponent wins when player loses
+			oppMult := 0
+			if oppWin {
+				oppMult = 1
+				oppStats.GamesWon++
+			} else {
+				oppMult = -1
+				oppStats.GamesLost++
+			}
+
+			switch msg.GameType {
+			case "bullet":
+				oppStats.BulletRating += game.GamePoints * oppMult
+			case "blitz":
+				oppStats.BlitzRating += game.GamePoints * oppMult
+			case "rapid":
+				oppStats.RapidRating += game.GamePoints * oppMult
+			case "classical":
+				oppStats.ClassicalRating += game.GamePoints * oppMult
+			}
+
+			log.Printf("Opponent stats: %v", oppStats)
+
+			if err := db.Save(&oppStats).Error; err != nil {
+				log.Printf("Failed to update opponent stats: %v", err)
+				return
+			}
+
+			delete(gameManager.sessions, sessionID)
+		case "move":
 			gameManager.mutex.Lock()
 			session, exists := gameManager.sessions[sessionID]
 			if !exists {
@@ -257,13 +374,12 @@ func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, gameID uint64, s
 				}
 			}
 			gameManager.mutex.Unlock()
-		} else {
+		default:
 			if err := conn.WriteJSON(msg); err != nil {
 				log.Printf("Error writing message: %v", err)
-				break
+				return
 			}
 		}
-
 	}
 }
 

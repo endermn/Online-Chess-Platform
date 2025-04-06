@@ -10,6 +10,56 @@ import (
 	"gorm.io/gorm"
 )
 
+type GameResult struct {
+	Game     models.Game
+	IsWin    bool
+	IsLoss   bool
+	IsDraw   bool
+	Opponent string
+	Points   int
+}
+
+func GetRecentGamesForUser(db *gorm.DB, userID uint64, limit int) ([]GameResult, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+
+	var games []models.Game
+	if err := db.Where("user_id = ?", userID).
+		Order("id DESC").
+		Limit(limit).
+		Find(&games).Error; err != nil {
+		return nil, err
+	}
+
+	results := make([]GameResult, len(games))
+	for i, game := range games {
+		result := GameResult{
+			Game:   game,
+			Points: game.GamePoints,
+		}
+
+		switch game.GameState {
+		case models.GameStateWin:
+			result.IsWin = true
+		case models.GameStateFailure:
+			result.IsLoss = true
+		case models.GameStateDraw:
+			result.IsDraw = true
+		}
+
+		if game.OpponentType == models.OpponentTypeBot {
+			result.Opponent = "Bot"
+		} else if game.OpponentType == models.OpponentTypeUser && game.OpponentUserID > 0 {
+			result.Opponent = "User"
+		}
+
+		results[i] = result
+	}
+
+	return results, nil
+}
+
 func UserStatsHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie("sess_token")
@@ -43,6 +93,7 @@ func UserStatsHandler(db *gorm.DB) gin.HandlerFunc {
 			c.String(http.StatusInternalServerError, "Unexpected error occured")
 			return
 		}
+		log.Printf("Handler user stats: %v", user_stats)
 
 		c.JSON(http.StatusOK, user_stats)
 	}

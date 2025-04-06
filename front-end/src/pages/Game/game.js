@@ -11,6 +11,7 @@ const ChessGamePage = () => {
     const [waitingForOpponent, setWaitingForOpponent] = useState(false);
     const chessGameRef = useRef(null);
     const wsRef = useRef(null);
+    const [mate, setMate] = useState("")
 
     useEffect(() => {
         return () => {
@@ -20,21 +21,47 @@ const ChessGamePage = () => {
         };
     }, []);
 
+    useEffect(() => {
+        console.log("mate effect running with value:", mate);
+        console.log("WebSocket state:", wsRef.current?.readyState);
+        console.log("gameID:", gameID);
+        
+        if (!mate) console.log("mate is falsy");
+        if (!wsRef.current) console.log("wsRef.current is falsy");
+        if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) console.log("WebSocket not open");
+        if (!gameID) console.log("gameID is falsy");
+        
+        if (mate && wsRef.current && wsRef.current.readyState === WebSocket.OPEN && gameID) {
+            try {
+                wsRef.current.send(JSON.stringify({
+                    type: 'mate',
+                    gameID: gameID,
+                    message: mate,
+                    gameType: ((window.location).pathname.match(/[^/]+(?=\/?$)/) || [''])[0]
+                }));
+                console.log("Successfully sent mate status:", mate);
+                setMate('')
+            } catch (error) {
+                console.error("Error sending mate status:", error);
+            }
+        }
+    }, [mate, gameID]);
+
     const setupWebSocket = () => {
         try {
             setWaitingForOpponent(true);
             setGameStatus("Connecting to server...");
-            
+
             wsRef.current = new WebSocket("ws://localhost:8080/game/create");
 
             wsRef.current.onopen = () => {
                 console.log("WebSocket connection established");
                 setConnected(true);
                 setGameStatus("Connected! Waiting for opponent...");
-                
-                const gameType = playerColor === 'white' ? 'vs-player' : 
-                                 playerColor === 'black' ? 'vs-bot' : 'both';
-                
+
+                const gameType = playerColor === 'white' ? 'vs-player' :
+                    playerColor === 'black' ? 'vs-bot' : 'both';
+
                 wsRef.current.send(JSON.stringify({
                     type: 'game_init',
                     gameType: gameType,
@@ -45,47 +72,46 @@ const ChessGamePage = () => {
             wsRef.current.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 console.log("Message received:", data);
-                
+
                 switch (data.type) {
                     case 'game_init':
                     case 'waiting':
                         setGameID(data.gameID);
                         setGameStatus(`Game created!`);
                         break;
-                    
+
                     case 'game_start':
                         setGameID(data.gameID);
                         setWaitingForOpponent(false);
                         setGameStarted(true);
                         setActualPlayerColor(data.color)
                         setGameStatus(`Opponent joined! You are playing as ${data.color}`);
-                        
+
                         if (chessGameRef.current && chessGameRef.current.setPosition) {
                             chessGameRef.current.setPosition(data.initialPosition || 'start');
                         }
                         break;
-                    
+
                     case 'move':
                         if (chessGameRef.current && chessGameRef.current.makeMove) {
                             chessGameRef.current.makeMove(data.move);
                         }
                         break;
-                    
+                    case 'mate':
+                        setGameStatus(`Game over: ${data.message}`)
+                        break;
+
                     case 'game_status':
                         setGameStatus(data.status);
                         break;
                     case 'opponent_disconnected':
                         setGameStatus(`Game over: opponent disconnected`);
                         break;
-                    case 'game_over':
-                        setGameStatus(`Game over: ${data.result}. ${data.reason || ''}`);
-                        break;
-                    
                     case 'error':
                         setGameStatus(`Error: ${data.message}`);
                         console.error("Game error:", data.message);
                         break;
-                    
+
                     default:
                         console.log("Unknown message type:", data.type);
                 }
@@ -94,7 +120,7 @@ const ChessGamePage = () => {
             wsRef.current.onclose = (event) => {
                 console.log("WebSocket connection closed:", event);
                 setConnected(false);
-                
+
                 if (event.code !== 1000) {
                     setGameStatus("Connection lost. Please try again.");
                 }
@@ -105,7 +131,7 @@ const ChessGamePage = () => {
                 setGameStatus("Connection error. Please try again.");
                 setConnected(false);
             };
-            
+
         } catch (error) {
             console.error("Error connecting to server:", error);
             setGameStatus("Failed to connect to server");
@@ -128,15 +154,38 @@ const ChessGamePage = () => {
             console.error("WebSocket is not connected");
             return;
         }
-        console.log(move)
-        
+        console.log(move);
+
+        // Get current game status from the chess game ref
+        let chessStatus = null;
+        if (chessGameRef.current && chessGameRef.current.getGameStatus) {
+            chessStatus = chessGameRef.current.getGameStatus();
+            console.log("Current game status:", chessStatus); // Debug log
+        }
+
         try {
             wsRef.current.send(JSON.stringify({
                 type: 'move',
                 gameID: gameID,
                 move: move.move.lan,
-                promotion: promotion
+                promotion: promotion,
+                gameStatus: chessStatus
             }));
+
+            // If the game is over (checkmate, stalemate), send a separate game_over message
+            if (chessStatus && (chessStatus.type === 'checkmate' || chessStatus.type === 'stalemate' || chessStatus.type === 'draw')) {
+                wsRef.current.send(JSON.stringify({
+                    type: 'game_over',
+                    gameID: gameID,
+                    result: chessStatus.type,
+                    reason: chessStatus.message,
+                    winner: chessStatus.type === 'checkmate' ?
+                        (move.move.color === 'w' ? 'white' : 'black') : 'draw'
+                }));
+
+                // Update local game status display
+                setGameStatus(`Game over: ${chessStatus.message}`);
+            }
         } catch (error) {
             console.error("Error sending move:", error);
             setGameStatus("Error sending move");
@@ -144,29 +193,28 @@ const ChessGamePage = () => {
     };
 
     const CancelGame = async () => {
-        console.log(gameID)
-        if (gameID && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        console.log("Cancelling game, gameID: ", gameID)
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
             try {
                 console.log("backing to menu")
                 wsRef.current.send(JSON.stringify({
                     type: 'cancel',
                     message: "forfeiting",
-                    gameID: gameID,
                 }));
-                
+
                 wsRef.current.close();
             } catch (error) {
                 console.error('Error forfeiting game:', error);
             }
         }
 
-        // Reset all game state
         setGameStarted(false);
         setWaitingForOpponent(false);
         setGameStatus('');
         setGameID(null);
         wsRef.current = null;
     };
+
     const backToMenu = async () => {
         console.log(gameID)
         if (gameID && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -177,7 +225,7 @@ const ChessGamePage = () => {
                     message: "forfeiting",
                     gameID: gameID,
                 }));
-                
+
                 wsRef.current.close();
             } catch (error) {
                 console.error('Error forfeiting game:', error);
@@ -191,8 +239,6 @@ const ChessGamePage = () => {
         setGameID(null);
         wsRef.current = null;
     };
-
-
 
     const resetGame = () => {
         if (playerColor === 'both' && chessGameRef.current) {
@@ -211,6 +257,40 @@ const ChessGamePage = () => {
             }
         }
     };
+
+    // Add a function to check game status periodically or after moves
+    const checkGameStatus = () => {
+        if (chessGameRef.current && chessGameRef.current.getGameStatus) {
+            const status = chessGameRef.current.getGameStatus();
+            console.log(status)
+            if (status) {
+                // Send game status update to server if in online mode
+                if (playerColor !== 'both' && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                    try {
+                        wsRef.current.send(JSON.stringify({
+                            type: 'game_status_update',
+                            gameID: gameID,
+                            status: {
+                                type: status.type,
+                                message: status.message
+                            }
+                        }));
+                    } catch (error) {
+                        console.error("Error sending status update:", error);
+                    }
+                }
+            }
+        }
+    };
+
+    // Use effect to check game status when the game is active
+    useEffect(() => {
+        if (gameStarted && playerColor !== 'both') {
+            // Initial check when game starts
+            const timeoutId = setTimeout(checkGameStatus, 500);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [gameStarted]);
 
     return (
         <div className="chess-page" style={{ minHeight: '100vh', backgroundColor: '#0f1626', color: '#f5f5f5', padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
@@ -248,7 +328,7 @@ const ChessGamePage = () => {
                             <div className="col-md-8 mx-auto">
                                 <div style={{ background: 'rgba(29, 53, 87, 0.8)', borderRadius: '10px', padding: '2rem', marginBottom: '2rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
                                     <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h2 style={{ color: '#6cb4ee', margin: 0 }}>{playerColor === 'both' ? 'Local Game' : `Playing as ${playerColor}`}</h2>
+                                        <h2 style={{ color: '#6cb4ee', margin: 0 }}>{playerColor === 'both' ? 'Local Game' : `Playing as ${actualPlayerColor}`}</h2>
                                         <div>
                                             {gameStatus && (<span className="me-3" style={{ color: '#8da9c4' }}>{gameStatus}</span>)}
                                             <button onClick={backToMenu} className="btn btn-outline-light" style={{ borderColor: '#8da9c4', color: '#8da9c4' }}>Back to Menu</button>
@@ -256,7 +336,14 @@ const ChessGamePage = () => {
                                     </div>
 
                                     <div className="d-flex justify-content-center">
-                                        <ChessGame ref={chessGameRef} squareSize={60} onMove={playerColor !== 'both' ? sendMove : undefined} playerColor={actualPlayerColor} orientation={actualPlayerColor === 'both' ? 'white' : actualPlayerColor} />
+                                        <ChessGame
+                                            ref={chessGameRef}
+                                            setMate={setMate}
+                                            squareSize={60}
+                                            onMove={playerColor !== 'both' ? sendMove : undefined}
+                                            playerColor={actualPlayerColor}
+                                            orientation={actualPlayerColor === 'both' ? 'white' : actualPlayerColor}
+                                        />
                                     </div>
 
                                     <div className="mt-3 d-flex justify-content-center">

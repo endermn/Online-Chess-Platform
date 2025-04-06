@@ -117,6 +117,8 @@ function HomePage() {
 
   profile.maxRating = Math.max(profile.BulletRating, profile.BlitzRating, profile.RapidRating, profile.ClassicalRating);
 
+  console.log(profile)
+
   const mockProfile = {
     firstName: "Pesho",
     lastName: "Toshev",

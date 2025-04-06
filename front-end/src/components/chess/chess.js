@@ -76,14 +76,15 @@ const Chessboard = React.forwardRef(({
   onSquareClick,
   allowMoves = true,
   playerColor = "both",
-  orientation = "white"
-}, ref) => {
+  setMate = "",
+  }, ref) => {
   const [game, setGame] = useState(null);
   const [boardPieces, setBoardPieces] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [highlightedSquares, setHighlightedSquares] = useState([]);
   const [legalMoves, setLegalMoves] = useState([]);
   const [feedback, setFeedback] = useState(null);
+  const [gameStatus, setGameStatus] = useState(null); // Track game status (checkmate, stalemate, etc.)
 
   // Expose methods to parent component via ref
   React.useImperativeHandle(ref, () => ({
@@ -93,6 +94,7 @@ const Chessboard = React.forwardRef(({
           const move = game.move(moveNotation);
           if (move) {
             setBoardPieces(convertChessJsBoard(game));
+            updateGameStatus(game);
           }
         } catch (e) {
           console.error("Invalid move:", e);
@@ -101,10 +103,32 @@ const Chessboard = React.forwardRef(({
     },
     getFEN: () => {
       return game ? game.fen() : fen;
+    },
+    // Add method to get current game status
+    getGameStatus: () => {
+      return gameStatus;
     }
   }));
 
-  // Initialize chess game
+  // Function to check and update game status
+  const updateGameStatus = (chessGame) => {
+    if (chessGame.isCheckmate()) {
+      const winner = chessGame.turn() === 'w' ? 'Black' : 'White';
+      setMate(winner)
+      setGameStatus({ type: 'checkmate', message: `Checkmate! ${winner} wins.` });
+    } else if (chessGame.isStalemate()) {
+      setGameStatus({ type: 'stalemate', message: 'Stalemate! Game is drawn.' });
+    } else if (chessGame.isDraw()) {
+      setGameStatus({ type: 'draw', message: 'Draw! Game is drawn.' });
+    } else if (chessGame.isCheck()) {
+      const checkedPlayer = chessGame.turn() === 'w' ? 'White' : 'Black';
+      setGameStatus({ type: 'check', message: `${checkedPlayer} is in check.` });
+    } else {
+      setGameStatus(null);
+      return
+    }
+  };
+
   useEffect(() => {
     try {
       const chessGame = new Chess(fen);
@@ -112,10 +136,12 @@ const Chessboard = React.forwardRef(({
       setBoardPieces(convertChessJsBoard(chessGame));
       setFeedback(null);
 
-      // Reset selection state when FEN changes
       setSelectedPiece(null);
       setHighlightedSquares([]);
       setLegalMoves([]);
+
+      // Check initial board status
+      updateGameStatus(chessGame);
     } catch (error) {
       console.error("Invalid FEN:", error);
     }
@@ -131,6 +157,8 @@ const Chessboard = React.forwardRef(({
         setSelectedPiece(null);
         setHighlightedSquares([]);
         setLegalMoves([]);
+        setGameStatus(null);
+        updateGameStatus(chessGame);
       } catch (error) {
         console.error("Error resetting board:", error);
       }
@@ -141,8 +169,12 @@ const Chessboard = React.forwardRef(({
   const piecesWithStyles = generatePieceStyles(boardPieces);
 
   const handleSquareClick = (row, col, piece) => {
+    // If game is over (checkmate or stalemate), disallow moves
+    if (gameStatus && (gameStatus.type === 'checkmate' || gameStatus.type === 'stalemate' || gameStatus.type === 'draw')) {
+      return;
+    }
+
     // Handle editor mode
-    console.log(playerColor)
     if (editorMode && onSquareClick) {
       const square = posToSquare({ x: col, y: row });
       onSquareClick(square);
@@ -236,6 +268,9 @@ const Chessboard = React.forwardRef(({
           // Update board representation
           setBoardPieces(convertChessJsBoard(game));
 
+          // Check game status after move
+          updateGameStatus(game);
+
           // Call onMove callback if provided
           if (onMove) {
             const moveResult = onMove({
@@ -243,7 +278,8 @@ const Chessboard = React.forwardRef(({
               from: selectedPiece.position,
               to: { x: col, y: row },
               fen: game.fen(),
-              move: move
+              move: move,
+              gameStatus: gameStatus
             });
 
             // Set feedback based on move result
@@ -298,19 +334,15 @@ const Chessboard = React.forwardRef(({
             }}
           >
             {Array.from({ length: boardSize }, (_, y) => {
-              // const row = orientation === 'black' ? row : boardSize - 1 - row
-
               return (
                 <div key={y} className={styles.chessboardRow}>
 
                   {Array.from({ length: boardSize }, (_, x) => {
-                    // const col = orientation === 'black' ? col : boardSize - 1 - col
                     const squareColor = getSquareColor(y, x);
                     const piece = piecesWithStyles.find((p) => p.position.x === x && p.position.y === y);
                     const isHighlighted = isSquareHighlighted(y, x);
                     const isLegal = isLegalMove(y, x);
                     const squareName = getSquareName(y, x);
-
 
                     return (
                       <div
@@ -409,7 +441,30 @@ const Chessboard = React.forwardRef(({
         </div>
       )}
 
-      {!editorMode && game && (
+      {/* Game status display */}
+      {gameStatus && (
+        <div
+          className={`${styles.gameStatus} ${styles[gameStatus.type]}`}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            backgroundColor: gameStatus.type === 'checkmate' ? 'rgba(0, 0, 0, 0.8)' :
+              gameStatus.type === 'check' ? 'rgba(255, 187, 0, 0.8)' :
+                'rgba(128, 128, 128, 0.8)',
+            color: 'white',
+            fontWeight: 'bold',
+            zIndex: 10
+          }}
+        >
+          {gameStatus.message}
+        </div>
+      )}
+
+      {!editorMode && game && !gameStatus?.type === 'checkmate' && (
         <div className="mt-3 text-center" style={{ color: 'white' }}>
           {game.turn() === 'w' ? "White's turn" : "Black's turn"}
         </div>
