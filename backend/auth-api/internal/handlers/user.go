@@ -80,11 +80,14 @@ func UserStatsHandler(db *gorm.DB) gin.HandlerFunc {
 			c.String(http.StatusUnauthorized, "Invalid token: missing user ID")
 			return
 		}
-		user_id, ok := idValue.(float64)
+		user_id_float, ok := idValue.(float64)
 		if !ok {
 			c.String(http.StatusUnauthorized, "Invalid token: user ID is not a string")
 			return
 		}
+
+		user_id := uint64(user_id_float)
+		log.Printf("Float id: %v, Uint id: %v", user_id_float, user_id)
 
 		var user_stats models.Statistic
 

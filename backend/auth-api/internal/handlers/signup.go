@@ -9,6 +9,7 @@ import (
 	"github.com/endermn/Thesis/backend/auth-api/internal/models"
 	"github.com/endermn/Thesis/backend/auth-api/internal/security"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -51,6 +52,7 @@ func SignupHandler(db *gorm.DB) gin.HandlerFunc {
 			c.String(http.StatusInternalServerError, "Unexpected error occured")
 		}
 		user = models.User{
+			PublicID:     uuid.New().String(),
 			FullName:     params.FullName,
 			Email:        params.Email,
 			PasswordHash: hash,

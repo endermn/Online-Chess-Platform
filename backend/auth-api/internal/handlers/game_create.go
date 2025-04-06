@@ -62,7 +62,6 @@ var gameManager = &GameManager{
 
 func GameHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
 			log.Printf("Failed to upgrade connection: %v", err)
