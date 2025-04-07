@@ -20,6 +20,7 @@ import NavSidebar from '../../components/navSidebar/navSidebar';
 function HomePage() {
   const [activeTab, setActiveTab] = useState('home');
   const [profile, setProfile] = useState(null);
+  const [history, setHistory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -59,9 +60,15 @@ function HomePage() {
           { method: 'GET', credentials: 'include' }
         );
 
+        const historyData = await fetchWithRetry(
+          'http://localhost:8080/user/recent', 
+          { method: 'GET', credentials: 'include' }
+        );
+
         const fullProfile = { 
           ...profileData, 
           ...statsData, 
+          historyData,
           maxRating: Math.max(
             profileData.BulletRating, 
             profileData.BlitzRating, 
@@ -118,6 +125,7 @@ function HomePage() {
   profile.maxRating = Math.max(profile.BulletRating, profile.BlitzRating, profile.RapidRating, profile.ClassicalRating);
 
   console.log(profile)
+  console.log(history)
 
   const mockProfile = {
     firstName: "Pesho",
@@ -178,7 +186,7 @@ function HomePage() {
           {/* Main Content */}
           <Col sm={9} md={10} className={styles.mainContent}>
             <div className={styles.headerSection}>
-              <h1>Welcome back, {mockProfile.firstName}!</h1>
+              <h1>Welcome back, {profile.FullName}!</h1>
               <div className={styles.statsCards}>
                 <Card className={styles.statCard}>
                   <Card.Body>
@@ -263,12 +271,11 @@ function HomePage() {
                 <h2>Recent Games</h2>
               </div>
               <div className={styles.historyContainer}>
-                {mockProfile.history.map((item, index) => (
+                {profile.historyData.map((item, index) => (
                   <HistoryCard
                     key={index}
                     index={index}
                     item={item}
-                    gameType={gameTypes[index % 4].name}
                     opponent="Opponent Player"
                     rating={mockProfile.rating[index % 4]}
                     date={new Date(Date.now() - (index * 86400000)).toLocaleDateString()}

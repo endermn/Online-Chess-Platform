@@ -260,7 +260,7 @@ function ProfilePage() {
                     </div>
                   </Col>
                   
-                  <Col lg={8}>
+                  {/* <Col lg={8}>
                     <h3 
                       style={{
                         ...customStyles.sectionTitle,
@@ -345,7 +345,7 @@ function ProfilePage() {
                         <span>{profile.GamesWon} wins / {profile.GamesLost} losses</span>
                       </div>
                     </div>
-                  </Col>
+                  </Col> */}
                 </Row>
               </Card.Body>
             </Card>

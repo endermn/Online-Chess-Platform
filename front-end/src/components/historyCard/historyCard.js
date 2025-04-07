@@ -3,23 +3,26 @@ import { Card, Badge } from 'react-bootstrap';
 import { User, Clock, TrendingUp, ChevronRight } from 'lucide-react';
 import styles from './historyCard.module.css';
 
-export default function HistoryCard({index, item, gameType = "Blitz", opponent = "Unknown", rating = 1000, date = "Today"}) {
+export default function HistoryCard({index, item, opponent = "Unknown", rating = 1000, date = "Today"}) {
   let gameResult = "";
   let gameColor = "";
   let badgeVariant = "";
   let resultText = "";
   
-  if (item === "win") {
+  console.log(item)
+  if (item.IsWin) {
     gameColor = "#38b000";
     badgeVariant = "success";
     resultText = "Victory";
-    gameResult = "+15";
-  } else if (item === "loss") {
+    gameResult = "+" + item.Points;
+  } else if (item.IsLoss) {
+    console.log("loss")
     gameColor = "#d90429";
     badgeVariant = "danger";
     resultText = "Defeat";
     gameResult = "-12";
-  } else if (item === "draw") {
+    gameResult = "-" + item.Points;
+  } else if (item.IsDraw) {
     gameColor = "#8d99ae";
     badgeVariant = "secondary";
     resultText = "Draw";
@@ -35,8 +38,7 @@ export default function HistoryCard({index, item, gameType = "Blitz", opponent =
           <div className={styles.gameInfo}>
             <div className={styles.gameHeader}>
               <Badge bg={badgeVariant} className={styles.resultBadge}>{resultText}</Badge>
-              <span className={styles.gameType}> {gameType} Game </span>
-              <span className={styles.gameDate}>{date}</span>
+              {/* <span className={styles.gameDate}>{date}</span> */}
             </div>
             
             <div className={styles.gameDetails}>

@@ -25,6 +25,7 @@ func setupRoutes(db *gorm.DB) *gin.Engine {
 	router.GET("/status", handlers.StatusHandler)
 	router.GET("/profile", handlers.ProfileHandler(db))
 	router.GET("/user/stats", handlers.UserStatsHandler(db))
+	router.GET("/user/recent", handlers.UserRecentGamesHandler(db))
 	router.GET("/puzzle/random", handlers.GetRandomPuzzle(db))
 	router.GET("/news", handlers.NewsHandler(db))
 
