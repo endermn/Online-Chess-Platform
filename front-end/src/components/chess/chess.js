@@ -9,18 +9,15 @@ const getSquareColor = (row, col) => {
 
 const getPiecePosition = (piece) => {
   const pieceMap = {
-    // White pieces (top row of sprite sheet)
     'K': '0% 0%', 'Q': '20% 0%', 'R': '80% 0%',
     'B': '40% 0%', 'N': '60% 0%', 'P': '100% 0%',
 
-    // Black pieces (bottom row of sprite sheet)
     'k': '0% 100%', 'q': '20% 100%', 'r': '80% 100%',
     'b': '40% 100%', 'n': '60% 100%', 'p': '100% 100%'
   };
   return pieceMap[piece] || 'none';
 };
 
-// Convert chess.js board representation to our format
 const convertChessJsBoard = (chessInstance) => {
   const board = [];
 
@@ -77,6 +74,7 @@ const Chessboard = React.forwardRef(({
   allowMoves = true,
   playerColor = "both",
   setMate = "",
+  orientation = "white"
   }, ref) => {
   const [game, setGame] = useState(null);
   const [boardPieces, setBoardPieces] = useState([]);
@@ -334,15 +332,18 @@ const Chessboard = React.forwardRef(({
             }}
           >
             {Array.from({ length: boardSize }, (_, y) => {
+               const row = orientation === 'white' ? y : boardSize - 1 - y;
               return (
                 <div key={y} className={styles.chessboardRow}>
 
                   {Array.from({ length: boardSize }, (_, x) => {
-                    const squareColor = getSquareColor(y, x);
-                    const piece = piecesWithStyles.find((p) => p.position.x === x && p.position.y === y);
-                    const isHighlighted = isSquareHighlighted(y, x);
-                    const isLegal = isLegalMove(y, x);
-                    const squareName = getSquareName(y, x);
+                    const col = orientation === 'white' ? boardSize - 1 - x : x;
+
+                    const squareColor = getSquareColor(row, col);
+                    const piece = piecesWithStyles.find((p) => p.position.x === col && p.position.y === row);
+                    const isHighlighted = isSquareHighlighted(row, col);
+                    const isLegal = isLegalMove(row, col);
+                    const squareName = getSquareName(row, col);
 
                     return (
                       <div
@@ -353,7 +354,7 @@ const Chessboard = React.forwardRef(({
                           height: `${squareSize}px`,
                           position: 'relative'
                         }}
-                        onClick={() => handleSquareClick(y, x, piece)}
+                        onClick={() => handleSquareClick(row, col, piece)}
                         data-square={squareName}
                       >
                         {editorMode && (

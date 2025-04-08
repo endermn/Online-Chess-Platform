@@ -237,6 +237,16 @@ func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, gameID uint64, s
 		log.Printf("Received message from session %d, user %d: %s", sessionID, userID, msg.Text)
 		if msg.Type == "cancel" {
 			delete(gameManager.sessions, sessionID)
+			err := db.Delete(&models.Session{}, sessionID).Error
+			if err != nil {
+				log.Printf("Failed to delete session from database: %v", err)
+			}
+			err = db.Delete(&models.Game{}, gameID).Error
+			if err != nil {
+				log.Printf("Failed to delete game from database: %v", err)
+				return
+			}
+			delete(gameManager.sessions, sessionID)
 		}
 
 		switch msg.Type {

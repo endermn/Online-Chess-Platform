@@ -76,6 +76,47 @@ func AdminAuthMiddleware(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// ToggleAdminStatus changes a user's admin status
+func ToggleAdminStatus(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Get user ID from URL parameter
+		userIDParam := c.Param("id")
+		if userIDParam == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+			return
+		}
+
+		// Convert the ID to uint64
+		userID, err := strconv.ParseUint(userIDParam, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+			return
+		}
+
+		// Find the user
+		var user models.User
+		if err := db.First(&user, userID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		// Toggle admin status
+		user.IsAdmin = !user.IsAdmin
+
+		// Save changes
+		if err := db.Save(&user).Error; err != nil {
+			log.Printf("Failed to update user admin status: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user admin status"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Admin status updated successfully",
+			"isAdmin": user.IsAdmin,
+		})
+	}
+}
+
 // DeleteUser handles the deletion of users
 func DeleteUser(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {

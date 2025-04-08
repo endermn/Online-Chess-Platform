@@ -8,6 +8,7 @@ const AdminPanel = () => {
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [adminActionLoading, setAdminActionLoading] = useState(false);
   
   // Fetch users on component mount
   useEffect(() => {
@@ -70,6 +71,35 @@ const AdminPanel = () => {
     }
   };
 
+  const toggleAdminStatus = async (user) => {
+    setAdminActionLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8080/admin/users/${user.id}/toggle-admin`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-type": "application/json"
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update admin status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Update user in state
+      setUsers(users.map(u => 
+        u.id === user.id ? {...u, isAdmin: data.isAdmin} : u
+      ));
+    } catch (err) {
+      setError('Failed to update admin status. ' + (err.message || 'Unknown error'));
+      console.log(err);
+    } finally {
+      setAdminActionLoading(false);
+    }
+  };
+
   return (
     <div className="admin-panel">
       <Navbar variant="dark" className="admin-navbar">
@@ -101,8 +131,23 @@ const AdminPanel = () => {
                     variant="outline-info" 
                     size="sm"
                     onClick={fetchUsers}
+                    disabled={loading}
                   >
-                    Refresh
+                    {loading ? (
+                      <>
+                        <Spinner 
+                          as="span" 
+                          animation="border" 
+                          size="sm" 
+                          role="status" 
+                          aria-hidden="true" 
+                          className="me-1"
+                        />
+                        Loading...
+                      </>
+                    ) : (
+                      "Refresh"
+                    )}
                   </Button>
                 </div>
 
@@ -114,7 +159,7 @@ const AdminPanel = () => {
                   <Table responsive hover variant="dark" className="admin-table">
                     <thead>
                       <tr>
-                        <th>ID</th>
+                        <th></th>
                         <th>Full Name</th>
                         <th>Email</th>
                         <th>Status</th>
@@ -127,7 +172,7 @@ const AdminPanel = () => {
                     <tbody>
                       {users.map(user => (
                         <tr key={user.id}>
-                          <td>{user.publicID}</td>
+                          <td>{user.ID}</td>
                           <td>{user.fullName}</td>
                           <td>{user.email}</td>
                           <td>
@@ -147,13 +192,23 @@ const AdminPanel = () => {
                           <td>{new Date(user.createdAt).toDateString()}</td>
                           <td>{new Date(user.lastLogin).toDateString()}</td>
                           <td>
-                            <Button 
-                              variant="danger" 
-                              size="sm" 
-                              onClick={() => handleDeleteClick(user)}
-                            >
-                              Delete
-                            </Button>
+                            <div className="d-flex gap-2">
+                              <Button 
+                                variant={user.isAdmin ? "outline-warning" : "outline-info"} 
+                                size="sm" 
+                                onClick={() => toggleAdminStatus(user)}
+                                disabled={adminActionLoading}
+                              >
+                                {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                              </Button>
+                              <Button 
+                                variant="danger" 
+                                size="sm" 
+                                onClick={() => handleDeleteClick(user)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}

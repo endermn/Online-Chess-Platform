@@ -48,6 +48,7 @@ func setupRoutes(db *gorm.DB) *gin.Engine {
 	{
 		adminRoutes.GET("/users", handlers.GetUsers(db))
 		adminRoutes.DELETE("/users/:id", handlers.DeleteUser(db))
+		adminRoutes.PUT("/users/:id/toggle-admin", handlers.ToggleAdminStatus(db))
 	}
 
 	return router

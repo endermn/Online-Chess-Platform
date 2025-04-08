@@ -11,12 +11,17 @@ const ChessGamePage = () => {
     const [waitingForOpponent, setWaitingForOpponent] = useState(false);
     const chessGameRef = useRef(null);
     const wsRef = useRef(null);
+    const botWsRef = useRef(null);  // Reference for the bot WebSocket
     const [mate, setMate] = useState("")
+    const [afterFen, setAfterFen] = useState("")
 
     useEffect(() => {
         return () => {
             if (wsRef.current) {
                 wsRef.current.close();
+            }
+            if (botWsRef.current) {
+                botWsRef.current.close();
             }
         };
     }, []);
@@ -25,12 +30,12 @@ const ChessGamePage = () => {
         console.log("mate effect running with value:", mate);
         console.log("WebSocket state:", wsRef.current?.readyState);
         console.log("gameID:", gameID);
-        
+
         if (!mate) console.log("mate is falsy");
         if (!wsRef.current) console.log("wsRef.current is falsy");
         if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) console.log("WebSocket not open");
         if (!gameID) console.log("gameID is falsy");
-        
+
         if (mate && wsRef.current && wsRef.current.readyState === WebSocket.OPEN && gameID) {
             try {
                 wsRef.current.send(JSON.stringify({
@@ -46,6 +51,95 @@ const ChessGamePage = () => {
             }
         }
     }, [mate, gameID]);
+
+    useEffect(() => {
+        console.log(gameStarted, playerColor === 'black', chessGameRef.current)
+        if (gameStarted && playerColor === 'black' && chessGameRef.current) {
+            // Initialize with standard starting position
+            if (chessGameRef.current.setPosition) {
+                chessGameRef.current.setPosition('start');
+            }
+
+            if (actualPlayerColor === 'black' && botWsRef.current &&
+                botWsRef.current.readyState === WebSocket.OPEN) {
+                console.log("sending initial pos")
+                sendPositionToBot('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'); // Standard FEN
+            }
+        }
+    }, [gameStarted, playerColor, actualPlayerColor]);
+
+    const setupBotWebSocket = () => {
+        try {
+            console.log("Setting up bot WebSocket connection");
+
+            botWsRef.current = new WebSocket("wss://chess-api.com/v1");
+
+            botWsRef.current.onopen = () => {
+                console.log("Bot WebSocket connection established");
+                // Only start the game once the connection is established
+                setGameStarted(true);
+                setActualPlayerColor('black');
+                setGameStatus("Connected to bot. Game started!");
+            };
+
+            botWsRef.current.onmessage = (event) => {
+                const botData = JSON.parse(event.data);
+                console.log("Bot API message received:", botData);
+
+                if (botData.lan) {
+                    if (chessGameRef.current && chessGameRef.current.makeMove) {
+                        console.log("Bot making move:", botData.lan);
+                        chessGameRef.current.makeMove(botData.lan);
+
+                        checkGameStatus();
+                    }
+                }
+
+                if (botData.variants) {
+                    console.log("Bot suggested variants:", botData.variants);
+                }
+            };
+
+            botWsRef.current.onclose = (event) => {
+                console.log("Bot WebSocket connection closed:", event);
+                if (event.code !== 1000) {
+                    setGameStatus("Bot API connection lost. Please try again.");
+                }
+            };
+
+            botWsRef.current.onerror = (error) => {
+                console.error("Bot WebSocket error:", error);
+                setGameStatus("Bot API connection error. Please try again.");
+            };
+
+        } catch (error) {
+            console.error("Error connecting to bot API:", error);
+            setGameStatus("Failed to connect to bot API");
+        }
+    };
+
+    const sendPositionToBot = (fen) => {
+        if (!botWsRef.current || botWsRef.current.readyState !== WebSocket.OPEN) {
+            console.error("Bot WebSocket is not connected");
+            setGameStatus("Not connected to bot API");
+            return;
+        }
+        const fenParts = fen.split(' ');
+        fenParts[3] = '-'; 
+        const modifiedFen = fenParts.join(' ');
+        try {
+            setGameStatus("Bot is thinking...");
+            botWsRef.current.send(JSON.stringify({
+                fen: modifiedFen,
+                variants: 3,
+                depth: 12  
+            }));
+            console.log("Sent position to bot API:", fen);
+        } catch (error) {
+            console.error("Error sending position to bot:", error);
+            setGameStatus("Error communicating with bot");
+        }
+    };
 
     const setupWebSocket = () => {
         try {
@@ -143,18 +237,22 @@ const ChessGamePage = () => {
             // Start local game, no WebSocket needed
             setGameStarted(true);
             setGameStatus("Local game started");
-        } else {
-            // Start online game with WebSocket
-            setupWebSocket();
+            return;
         }
+
+        if (playerColor === 'black') {
+            setGameStatus("Connecting to chess bot API...");
+            setupBotWebSocket();
+            // Don't set gameStarted to true here - wait for the connection
+            return;
+        }
+
+        setupWebSocket();
     };
 
     const sendMove = (move, to, promotion = null) => {
-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-            console.error("WebSocket is not connected");
-            return;
-        }
-        console.log(move);
+        console.log("Move: ");
+        console.log(move)
 
         // Get current game status from the chess game ref
         let chessStatus = null;
@@ -163,32 +261,66 @@ const ChessGamePage = () => {
             console.log("Current game status:", chessStatus); // Debug log
         }
 
-        try {
-            wsRef.current.send(JSON.stringify({
-                type: 'move',
-                gameID: gameID,
-                move: move.move.lan,
-                promotion: promotion,
-                gameStatus: chessStatus
-            }));
+        // FIXED: Handle bot game differently from online multiplayer game
+        // FIXED: Handle bot game differently from online multiplayer game
+        if (playerColor === 'black') {
+            // Bot game - use botWsRef
+            if (!botWsRef.current || botWsRef.current.readyState !== WebSocket.OPEN) {
+                console.error("Bot WebSocket is not connected");
+                setGameStatus("Not connected to bot API");
+                return;
+            }
 
-            // If the game is over (checkmate, stalemate), send a separate game_over message
-            if (chessStatus && (chessStatus.type === 'checkmate' || chessStatus.type === 'stalemate' || chessStatus.type === 'draw')) {
+            try {
+                // For bot games, we need to send the FEN position after the player's move
+                if (chessGameRef.current) {
+                    sendPositionToBot(move.move.after);
+                } else {
+                    console.error("Cannot get current FEN position");
+                }
+
+                // Check if game is over
+                if (chessStatus && (chessStatus.type === 'checkmate' || chessStatus.type === 'stalemate' || chessStatus.type === 'draw')) {
+                    setGameStatus(`Game over: ${chessStatus.message}`);
+                }
+            } catch (error) {
+                console.error("Error communicating with bot:", error);
+                setGameStatus("Error communicating with bot");
+            }
+        } else {
+            // Regular online multiplayer game - use wsRef
+            if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+                console.error("WebSocket is not connected");
+                return;
+            }
+
+            try {
                 wsRef.current.send(JSON.stringify({
-                    type: 'game_over',
+                    type: 'move',
                     gameID: gameID,
-                    result: chessStatus.type,
-                    reason: chessStatus.message,
-                    winner: chessStatus.type === 'checkmate' ?
-                        (move.move.color === 'w' ? 'white' : 'black') : 'draw'
+                    move: move.move.lan,
+                    promotion: promotion,
+                    gameStatus: chessStatus
                 }));
 
-                // Update local game status display
-                setGameStatus(`Game over: ${chessStatus.message}`);
+                // If the game is over (checkmate, stalemate), send a separate game_over message
+                if (chessStatus && (chessStatus.type === 'checkmate' || chessStatus.type === 'stalemate' || chessStatus.type === 'draw')) {
+                    wsRef.current.send(JSON.stringify({
+                        type: 'game_over',
+                        gameID: gameID,
+                        result: chessStatus.type,
+                        reason: chessStatus.message,
+                        winner: chessStatus.type === 'checkmate' ?
+                            (move.move.color === 'w' ? 'white' : 'black') : 'draw'
+                    }));
+
+                    // Update local game status display
+                    setGameStatus(`Game over: ${chessStatus.message}`);
+                }
+            } catch (error) {
+                console.error("Error sending move:", error);
+                setGameStatus("Error sending move");
             }
-        } catch (error) {
-            console.error("Error sending move:", error);
-            setGameStatus("Error sending move");
         }
     };
 
@@ -208,11 +340,21 @@ const ChessGamePage = () => {
             }
         }
 
+        // Close bot WebSocket if it exists
+        if (botWsRef.current && botWsRef.current.readyState === WebSocket.OPEN) {
+            try {
+                botWsRef.current.close();
+            } catch (error) {
+                console.error('Error closing bot WebSocket:', error);
+            }
+        }
+
         setGameStarted(false);
         setWaitingForOpponent(false);
         setGameStatus('');
         setGameID(null);
         wsRef.current = null;
+        botWsRef.current = null;
     };
 
     const backToMenu = async () => {
@@ -232,12 +374,22 @@ const ChessGamePage = () => {
             }
         }
 
+        // Close bot WebSocket if it exists
+        if (botWsRef.current && botWsRef.current.readyState === WebSocket.OPEN) {
+            try {
+                botWsRef.current.close();
+            } catch (error) {
+                console.error('Error closing bot WebSocket:', error);
+            }
+        }
+
         // Reset all game state
         setGameStarted(false);
         setWaitingForOpponent(false);
         setGameStatus('');
         setGameID(null);
         wsRef.current = null;
+        botWsRef.current = null;
     };
 
     const resetGame = () => {
@@ -297,7 +449,7 @@ const ChessGamePage = () => {
             <div className="container">
                 <header className="text-center mb-5">
                     <h1 style={{ color: '#4e89ae', fontWeight: 'bold', fontSize: '2.5rem' }}>Chess Arena</h1>
-                    <p style={{ color: '#8da9c4', fontSize: '1.2rem' }}>Challenge your friends in a battle of wits</p>
+                    <p style={{ color: '#8da9c4', fontSize: '1.2rem' }}>Challenge your friends or play against the bot</p>
                 </header>
 
                 {!gameStarted && !waitingForOpponent ? (
@@ -328,7 +480,11 @@ const ChessGamePage = () => {
                             <div className="col-md-8 mx-auto">
                                 <div style={{ background: 'rgba(29, 53, 87, 0.8)', borderRadius: '10px', padding: '2rem', marginBottom: '2rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
                                     <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h2 style={{ color: '#6cb4ee', margin: 0 }}>{playerColor === 'both' ? 'Local Game' : `Playing as ${actualPlayerColor}`}</h2>
+                                        <h2 style={{ color: '#6cb4ee', margin: 0 }}>
+                                            {playerColor === 'both' ? 'Local Game' :
+                                                playerColor === 'black' ? `Playing against Bot as ${actualPlayerColor}` :
+                                                    `Playing as ${actualPlayerColor}`}
+                                        </h2>
                                         <div>
                                             {gameStatus && (<span className="me-3" style={{ color: '#8da9c4' }}>{gameStatus}</span>)}
                                             <button onClick={backToMenu} className="btn btn-outline-light" style={{ borderColor: '#8da9c4', color: '#8da9c4' }}>Back to Menu</button>
@@ -348,7 +504,11 @@ const ChessGamePage = () => {
 
                                     <div className="mt-3 d-flex justify-content-center">
                                         <div style={{ backgroundColor: 'rgba(29, 53, 87, 0.7)', padding: '0.75rem 1.5rem', borderRadius: '5px', fontWeight: 'bold' }}>
-                                            {playerColor === 'both' ? 'Pass the device to your opponent after each move' : `You are playing as ${actualPlayerColor}`}
+                                            {playerColor === 'both' ?
+                                                'Pass the device to your opponent after each move' :
+                                                playerColor === 'black' ?
+                                                    `You are playing against the bot as ${actualPlayerColor}` :
+                                                    `You are playing as ${actualPlayerColor}`}
                                         </div>
                                     </div>
                                 </div>
