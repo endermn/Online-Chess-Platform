@@ -50,6 +50,7 @@ func GetRandomPuzzle(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		log.Printf("moves: %v ", puzzle.SecondMove)
+		log.Printf("fen: %v ", puzzle.FEN)
 
 		c.JSON(http.StatusOK, response)
 	}

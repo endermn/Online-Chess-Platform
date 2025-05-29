@@ -73,7 +73,7 @@ const Chessboard = React.forwardRef(({
   onSquareClick,
   allowMoves = true,
   playerColor = "both",
-  setMate = "",
+  setMate,
   orientation = "white"
   }, ref) => {
   const [game, setGame] = useState(null);

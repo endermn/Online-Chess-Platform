@@ -53,8 +53,8 @@ const ChessGamePage = () => {
     }, [mate, gameID]);
 
     useEffect(() => {
-        console.log(gameStarted, playerColor === 'black', chessGameRef.current)
-        if (gameStarted && playerColor === 'black' && chessGameRef.current) {
+        console.log(gameStarted, playerColor === 'black' || playerColor === 'both', chessGameRef.current)
+        if (gameStarted && (playerColor === 'black' || playerColor === 'both') && chessGameRef.current) {
             // Initialize with standard starting position
             if (chessGameRef.current.setPosition) {
                 chessGameRef.current.setPosition('start');
@@ -129,10 +129,11 @@ const ChessGamePage = () => {
         const modifiedFen = fenParts.join(' ');
         try {
             setGameStatus("Bot is thinking...");
+            let depth = playerColor === 'both' ? 2 : 12;
             botWsRef.current.send(JSON.stringify({
                 fen: modifiedFen,
                 variants: 3,
-                depth: 12  
+                depth: depth 
             }));
             console.log("Sent position to bot API:", fen);
         } catch (error) {
@@ -233,17 +234,10 @@ const ChessGamePage = () => {
     };
 
     const startGame = () => {
-        if (playerColor === 'both') {
-            // Start local game, no WebSocket needed
-            setGameStarted(true);
-            setGameStatus("Local game started");
-            return;
-        }
-
-        if (playerColor === 'black') {
+        // Use the same bot logic for both 'black' and 'both'
+        if (playerColor === 'black' || playerColor === 'both') {
             setGameStatus("Connecting to chess bot API...");
             setupBotWebSocket();
-            // Don't set gameStarted to true here - wait for the connection
             return;
         }
 
@@ -262,8 +256,7 @@ const ChessGamePage = () => {
         }
 
         // FIXED: Handle bot game differently from online multiplayer game
-        // FIXED: Handle bot game differently from online multiplayer game
-        if (playerColor === 'black') {
+        if (playerColor === 'black' || playerColor === 'both') {
             // Bot game - use botWsRef
             if (!botWsRef.current || botWsRef.current.readyState !== WebSocket.OPEN) {
                 console.error("Bot WebSocket is not connected");
@@ -393,8 +386,8 @@ const ChessGamePage = () => {
     };
 
     const resetGame = () => {
-        if (playerColor === 'both' && chessGameRef.current) {
-            // For local games, just reset the board
+        if ((playerColor === 'both' || playerColor === 'black') && chessGameRef.current) {
+            // For bot games, just reset the board
             chessGameRef.current.resetBoard?.() || window.location.reload();
         } else if (gameID && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
             // For online games, send reset request to server
@@ -459,8 +452,8 @@ const ChessGamePage = () => {
                             <label className="mb-2">Play Vs</label>
                             <div className="d-flex gap-3">
                                 <button onClick={() => setPlayerColor('white')} className="btn" style={{ flex: 1, backgroundColor: playerColor === 'white' ? '#4e89ae' : 'transparent', borderColor: '#4e89ae', color: playerColor === 'white' ? 'white' : '#8da9c4' }}>Player</button>
-                                <button onClick={() => setPlayerColor('black')} className="btn" style={{ flex: 1, backgroundColor: playerColor === 'black' ? '#4e89ae' : 'transparent', borderColor: '#4e89ae', color: playerColor === 'black' ? 'white' : '#8da9c4' }}>Bot</button>
-                                <button onClick={() => setPlayerColor('both')} className="btn" style={{ flex: 1, backgroundColor: playerColor === 'both' ? '#4e89ae' : 'transparent', borderColor: '#4e89ae', color: playerColor === 'both' ? 'white' : '#8da9c4' }}>Local Play</button>
+                                <button onClick={() => setPlayerColor('black')} className="btn" style={{ flex: 1, backgroundColor: playerColor === 'black' ? '#4e89ae' : 'transparent', borderColor: '#4e89ae', color: playerColor === 'black' ? 'white' : '#8da9c4' }}>Hard Bot</button>
+                                <button onClick={() => setPlayerColor('both')} className="btn" style={{ flex: 1, backgroundColor: playerColor === 'both' ? '#4e89ae' : 'transparent', borderColor: '#4e89ae', color: playerColor === 'both' ? 'white' : '#8da9c4' }}>Easy Bot</button>
                             </div>
                         </div>
                         <div className="text-center mt-5">
@@ -481,7 +474,7 @@ const ChessGamePage = () => {
                                 <div style={{ background: 'rgba(29, 53, 87, 0.8)', borderRadius: '10px', padding: '2rem', marginBottom: '2rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
                                     <div className="d-flex justify-content-between align-items-center mb-4">
                                         <h2 style={{ color: '#6cb4ee', margin: 0 }}>
-                                            {playerColor === 'both' ? 'Local Game' :
+                                            {playerColor === 'both' ? 'Playing against Bot as black' :
                                                 playerColor === 'black' ? `Playing against Bot as ${actualPlayerColor}` :
                                                     `Playing as ${actualPlayerColor}`}
                                         </h2>
@@ -496,28 +489,20 @@ const ChessGamePage = () => {
                                             ref={chessGameRef}
                                             setMate={setMate}
                                             squareSize={60}
-                                            onMove={playerColor !== 'both' ? sendMove : undefined}
+                                            onMove={playerColor !== 'both' ? sendMove : sendMove}
                                             playerColor={actualPlayerColor}
-                                            orientation={actualPlayerColor === 'both' ? 'white' : actualPlayerColor}
+                                            orientation={actualPlayerColor === 'both' ? 'black' : actualPlayerColor}
                                         />
                                     </div>
 
                                     <div className="mt-3 d-flex justify-content-center">
                                         <div style={{ backgroundColor: 'rgba(29, 53, 87, 0.7)', padding: '0.75rem 1.5rem', borderRadius: '5px', fontWeight: 'bold' }}>
                                             {playerColor === 'both' ?
-                                                'Pass the device to your opponent after each move' :
+                                                'Playing against the bot as black' :
                                                 playerColor === 'black' ?
                                                     `You are playing against the bot as ${actualPlayerColor}` :
                                                     `You are playing as ${actualPlayerColor}`}
                                         </div>
-                                    </div>
-                                </div>
-
-                                <div style={{ background: 'rgba(29, 53, 87, 0.8)', borderRadius: '10px', padding: '1.5rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
-                                    <h3 className="mb-3" style={{ color: '#6cb4ee' }}>Game Controls</h3>
-                                    <div className="d-flex flex-wrap gap-3">
-                                        <button className="btn" style={{ backgroundColor: 'rgba(93, 156, 237, 0.2)', color: '#8da9c4', border: '1px solid #4e89ae' }} onClick={resetGame} disabled={playerColor !== 'both' && !gameID}>Reset Game</button>
-                                        <button className="btn" style={{ backgroundColor: 'rgba(93, 156, 237, 0.2)', color: '#8da9c4', border: '1px solid #4e89ae' }} onClick={() => { alert('Save game feature would be implemented here'); }}>Save Game</button>
                                     </div>
                                 </div>
 

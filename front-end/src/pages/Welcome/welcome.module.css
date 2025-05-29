@@ -1,282 +1,185 @@
-.main { 
-    background-color: #1a1f2b;
-    color: white; 
-    min-height: 100vh; 
-    padding: 30px;
-    padding-top: 0px;
-    position: relative;
-    overflow: hidden;
-} 
-
-/* Navbar Styles */
-.navBar {
-    display: flex;
-    padding: 20px 0;
-    background-color: transparent;
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.8s ease;
-}
-
-.fadeInDown {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.navBar > .name {
+/* --- Base Styles (Desktop First) --- */
+.main {
+    background-color: #1a1a2e; /* Original dark background */
+    color: #e0e0e0;
+    min-height: 100vh;
+    position: relative; /* For positioning background pieces */
+    /* overflow: hidden; -- Applied inline in JSX */
+  }
+  
+  /* Navbar */
+  .navBar {
+    /* Base styles for the navbar */
+    padding: 0.5rem 1rem;
+    /* Entrance animation applied via JS */
+    opacity: 0; /* Start hidden for animation */
+  }
+  .name {
+    font-size: 1.8rem;
     font-weight: bold;
-    font-size: 1.8em;
-    letter-spacing: 1px;
+    color: #fff !important;
+  }
+  .logoText {
+    color: #f0a500; /* Highlight color */
+  }
+  .login, .register {
+    font-weight: 600;
+     /* Desktop margins handled by Bootstrap me-2/mb-md-0 */
+  }
+  
+  /* Main Content */
+  .mainContainer {
+    /* Base padding handled by Bootstrap py-5 */
+    /* Base flex handled by Bootstrap classes */
+    min-height: calc(100vh - 56px); /* Adjust based on actual navbar height */
+  }
+  
+  .contentLeft, .contentRight {
+      opacity: 0; /* Start hidden for animation */
+      /* Desktop text alignment handled by Bootstrap text-md-start/end */
+  }
+  
+  .discoverHeader {
+    font-size: 2.8rem; /* Desktop size */
+    font-weight: bold;
+    line-height: 1.3;
+  }
+  .victoryText {
+    color: #f0a500; /* Highlight color */
+  }
+  .subtitle {
+    font-size: 1.2rem;
+    margin: 1rem 0 2rem 0;
+    color: #a0a0c0;
+  }
+  .start {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+  }
+  .btnContent { display: inline-flex; align-items: center; }
+  .chessPiece { margin-left: 0.5rem; font-size: 1.3em; }
+  
+  /* Image */
+  .imageContainer {
     position: relative;
-}
-
-.logoText {
-    color: #4d84e2;
-    font-size: 1.2em;
-}
-
-.navLink {
-    margin: 0 10px;
-    position: relative;
-    transition: color 0.3s ease;
-}
-
-.navLink:after {
-    content: '';
+    max-width: 450px; /* Desktop max width */
+    margin-left: auto; /* Align right on desktop (text-md-end) */
+    margin-right: 0; /* Reset margin-right */
+  }
+  .mainImage {
+    border-radius: 10px;
+    /* fluid class handles responsive width */
+  }
+  .imageShadow {
     position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: 0;
-    left: 0;
-    background-color: #4d84e2;
-    transition: width 0.3s ease;
-}
-
-.navLink:hover:after {
-    width: 100%;
-}
-
-.navBar .login {
-    margin-right: 10px;
-    border-radius: 25px;
-    padding: 8px 24px;
-    font-weight: 500;
-    border: 2px solid #4d84e2;
-    transition: all 0.3s ease;
-}
-
-.navBar .login:hover {
-    background-color: rgba(77, 132, 226, 0.2);
-    transform: translateY(-2px);
-}
-
-.navBar .register {
-    border-radius: 25px;
-    padding: 8px 24px;
-    font-weight: 500;
-    background-color: #4d84e2;
-    border: 2px solid #4d84e2;
-    color: white;
-    transition: all 0.3s ease;
-}
-
-.navBar .register:hover {
-    background-color: #3a6fc8;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(77, 132, 226, 0.4);
-}
-
-/* Main Container Styles */
-.mainContainer {
-    background-color: #232836;
-    border-radius: 25px;
-    height: 84vh;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.mainContainer:before {
-    content: '';
+    bottom: -10px; left: 5%; width: 90%; height: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    filter: blur(15px);
+    border-radius: 50%;
+    z-index: -1;
+  }
+  .imageCaption {
+    font-size: 0.9rem;
+    color: #a0a0c0;
+  }
+  
+  /* Background Pieces (Desktop Positions) */
+  .chessPiece1, .chessPiece2, .chessPiece3 {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(77, 132, 226, 0.05) 0%, rgba(23, 28, 40, 0) 70%);
+    color: rgba(255, 255, 255, 0.05);
+    z-index: 0;
+    user-select: none;
     pointer-events: none;
-}
-
-/* Content Styles */
-.contentLeft, .contentRight {
-    opacity: 0;
-    transform: translateX(-30px);
-    transition: all 1s ease;
-    padding: 0 40px;
-}
-
-.contentRight {
-    transform: translateX(30px);
-}
-
-.slideInLeft, .slideInRight {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.discoverHeader {
-    font-size: 3.2rem;
-    font-weight: bold;
-    width: 90%;
-    margin-bottom: 30px;
-    line-height: 1.2;
-    background: linear-gradient(45deg, #ffffff, #a7c5f3);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-.victoryText {
-    color: #4d84e2;
-    position: relative;
-    font-style: italic;
-}
-
-.subtitle {
-    font-size: 1.3em;
-    margin-bottom: 40px;
-    color: #a7b4d0;
-    letter-spacing: 0.5px;
-    transform: translateY(20px);
-    animation: float 5s ease-in-out infinite;
-}
-
-.mainContainer .start {
-    margin-top: 30px;
-    border-radius: 25px;
-    padding: 12px 34px;
-    font-size: 1.2em;
-    font-weight: 500;
-    background-color: #4d84e2;
-    border: none;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s ease;
-}
-
-.mainContainer .start:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(77, 132, 226, 0.5);
-}
-
-.mainContainer .start:active {
-    transform: translateY(1px);
-}
-
-.btnContent {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.chessPiece {
-    font-size: 1.4em;
-    margin-left: 12px;
-    display: inline-block;
-    transform: translateY(-2px);
-    animation: bounce 2s infinite;
-}
-
-/* Image Styles */
-.imageContainer {
-    position: relative;
-    overflow: visible;
-}
-
-.mainImage {
-    width: 85%;
-    border-radius: 15px;
-    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
-    transition: all 0.5s ease;
-    transform: perspective(1000px) rotateY(-5deg);
-    filter: brightness(1.1) contrast(1.1);
-}
-
-.mainImage:hover {
-    transform: perspective(1000px) rotateY(0deg);
-}
-
-.imageShadow {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 80%;
-    height: 100%;
-    border-radius: 15px;
-    z-index: -1;
-    background: linear-gradient(45deg, #4d84e2 0%, #2a4d8d 100%);
-    opacity: 0.5;
-    filter: blur(20px);
-    transform: perspective(1000px) rotateY(-5deg);
-    transition: all 0.5s ease;
-}
-
-.imageCaption {
-    font-size: 0.9em;
-    margin-top: 15px;
-    text-align: center;
-    color: #a7b4d0;
-    transform: translateX(40px);
-}
-
-/* Floating Chess Pieces */
-.chessPiece1, .chessPiece2, .chessPiece3 {
-    position: absolute;
-    font-size: 5rem;
-    color: rgba(77, 132, 226, 0.1);
-    z-index: -1;
-    animation: float 10s ease-in-out infinite;
-}
-
-.chessPiece1 {
-    top: 15%;
-    left: 5%;
-    animation-delay: 0s;
-}
-
-.chessPiece2 {
-    bottom: 15%;
-    right: 10%;
-    animation-delay: 2s;
-}
-
-.chessPiece3 {
-    top: 70%;
-    left: 12%;
-    animation-delay: 4s;
-}
-
-/* Animations */
-@keyframes float {
-    0% {
-        transform: translateY(0) rotate(0deg);
+    font-size: 10rem; /* Base desktop size */
+  }
+  .chessPiece1 { top: 15%; left: 5%; font-size: 10rem; transform: rotate(-15deg); }
+  .chessPiece2 { bottom: 10%; right: 8%; font-size: 8rem; transform: rotate(10deg); }
+  .chessPiece3 { top: 50%; right: 35%; font-size: 12rem; transform: rotate(5deg); }
+  
+  /* --- Original Entrance Animations --- */
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fadeInDown { animation: fadeInDown 0.6s ease-out forwards; }
+  
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-50px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .slideInLeft { animation: slideInLeft 0.8s ease-out forwards; }
+  
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .slideInRight { animation: slideInRight 0.8s ease-out forwards; }
+  
+  
+  /* =========================================== */
+  /* --- Mobile Overrides (Below md breakpoint) --- */
+  /* =========================================== */
+  @media (max-width: 767.98px) {
+  
+    /* Adjust Navbar button stacking */
+    .navBar .nav {
+      padding-top: 0.5rem; /* Space above stacked buttons */
     }
-    50% {
-        transform: translateY(-20px) rotate(5deg);
+    .login, .register {
+      width: 100%; /* Full width buttons */
+      text-align: center;
     }
-    100% {
-        transform: translateY(0) rotate(0deg);
+    .login {
+      margin-right: 0 !important; /* Remove spacing used for desktop */
     }
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
+  
+    /* Adjust text sizes */
+    .discoverHeader {
+      font-size: 2rem; /* Smaller header */
     }
-    40% {
-        transform: translateY(-8px);
+    .subtitle {
+      font-size: 1rem; /* Smaller subtitle */
+      margin-bottom: 1.5rem;
     }
-    60% {
-        transform: translateY(-4px);
+    .start {
+        padding: 0.7rem 1.5rem; /* Smaller button */
+        font-size: 1rem;
     }
-}
+  
+    /* Adjust image container */
+    .imageContainer {
+      max-width: 80%; /* Allow image to shrink */
+      margin-left: auto; /* Center align (due to text-center on col) */
+      margin-right: auto; /* Center align */
+      margin-top: 1rem; /* Space above image when stacked */
+    }
+  
+    /* Reposition / Hide Background Pieces */
+    .chessPiece1 { top: 70%; left: 5%; font-size: 6rem; } /* Repositioned, smaller */
+    .chessPiece2 { display: none; } /* Hide */
+    .chessPiece3 { bottom: 5%; right: 5%; top: auto; font-size: 7rem; } /* Repositioned, smaller */
+  
+    /* Text alignment handled by Bootstrap classes (text-center) */
+    /* Layout stacking handled by Bootstrap Col/Row */
+    /* Navbar collapse handled by Bootstrap Navbar component */
+  }
+  
+  /* --- Accessibility: Reduce Motion --- */
+  @media (prefers-reduced-motion: reduce) {
+    /* Disable entrance animations */
+    .fadeInDown, .slideInLeft, .slideInRight {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+     /* Also ensure columns are visible if animation disabled */
+     .contentLeft, .contentRight {
+         opacity: 1 !important;
+     }
+     /* Ensure navbar visible */
+      .navBar {
+          opacity: 1 !important;
+      }
+  }

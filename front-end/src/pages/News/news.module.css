@@ -1,149 +1,271 @@
 /* news.module.css */
+
 .mainContainer {
     padding: 0;
-    min-height: 100vh;
-    background-color: #101010;
-}
-
-.pageRow {
-    min-height: 100vh;
-}
-
-.content {
-    padding: 0;
+    height: 100vh; /* Force exact viewport height */
+    background-color: #101010; /* Dark background */
+    overflow: hidden; /* Prevent scrolling on the main container */
+    display: flex; /* Use flexbox to manage children */
+    flex-direction: column; /* Stack children vertically (the pageRow) */
+    color: #e9ecef; /* Light default text color for dark theme */
+  }
+  
+  .pageRow {
+    flex-grow: 1; /* Allow this row to fill available vertical space */
+    overflow: hidden; /* Prevent this row from overflowing mainContainer */
+    display: flex; /* Use flex to lay out sidebar and content columns */
+  }
+  
+  /* Sidebar Styling (within Offcanvas) */
+  .mobileOffcanvas {
+    /* Style the Offcanvas container itself */
+    background-color: #1a1a1a; /* Slightly lighter dark for sidebar */
+    color: #e9ecef;
+    /* Ensure it takes full height in desktop view */
+    height: 100%;
+    border-right: 1px solid #333; /* Subtle separator */
+  }
+  .mobileOffcanvasBody {
+     padding: 0; /* Remove default padding if NavSidebar handles it */
+     /* Ensure body takes full height if needed */
+     height: 100%;
+     display: flex;
+     flex-direction: column;
+  }
+  
+  /* Hamburger Button Styling */
+  .mobileNavToggle {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1050; /* Ensure it's above Offcanvas backdrop */
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent */
+      border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  
+  /* Main Content Area Styling */
+  .content {
+    padding: 0; /* Remove padding here, apply to inner elements */
     display: flex;
     flex-direction: column;
-}
-
-.pageHeader {
-    background: linear-gradient(135deg, #2a314b, #41536f);
+    flex-grow: 1; /* Allow content column to take available horizontal space */
+    overflow: hidden; /* Prevent this column from overflowing the pageRow */
+    background-color: #101010; /* Match main background or differentiate slightly */
+  }
+  
+  .pageHeader {
+    /* Using a subtle gradient or solid color might fit better */
+    background: linear-gradient(135deg, #1a1d24, #2a314b); /* Darker gradient */
+    /* background-color: #1f1f1f; */ /* Alternative: Solid darker color */
     color: white;
-    padding: 1rem 2rem 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.pageTitle {
-    font-size: 2.5rem;
+    padding: 1rem 1.5rem 1.5rem; /* Adjust padding */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
+    /* Header does NOT flex/shrink */
+  }
+  
+  .pageTitle {
+    font-size: clamp(1.8rem, 4vw, 2.5rem); /* Responsive font size */
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
     text-align: center;
-}
-
-.pageSubtitle {
-    font-size: 1.2rem;
+  }
+  
+  .pageSubtitle {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem); /* Responsive font size */
     text-align: center;
-    opacity: 0.9;
-    margin-bottom: 1.5rem;
-}
-
-.controlsSection {
-    margin-top: 1.5rem;
+    opacity: 0.8;
+    margin-bottom: 1rem; /* Adjust spacing */
+  }
+  
+  .controlsSection {
+    margin-top: 1rem; /* Adjust spacing */
     padding-bottom: 0.5rem;
-}
-
-.searchInput {
-    padding: 0.75rem 1rem;
+    /* This section sits within pageHeader or content, taking natural height */
+  }
+  
+  .searchInput {
+    padding: 0.7rem 1.2rem; /* Adjust padding */
     border-radius: 25px;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
-
-.categoriesWrapper {
+    border: 1px solid #444; /* Border for dark theme */
+    background-color: #2a2a2a; /* Dark input background */
+    color: #e0e0e0; /* Light text color */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    font-size: 0.95rem;
+  }
+  .searchInput::placeholder {
+    color: #888; /* Placeholder text color */
+  }
+  
+  .categoriesWrapper {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-}
-
-.categoriesContainer {
+  }
+  
+  .categoriesContainer {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    flex-wrap: wrap; /* Allow wrapping */
+    gap: 0.6rem; /* Space between badges */
     justify-content: flex-end;
-}
-
-.categoryBadge {
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
+     /* Allow horizontal scroll ONLY IF badges overflow horizontally */
+     overflow-x: auto;
+     padding-bottom: 5px; /* Add space for scrollbar if it appears */
+     /* Hide scrollbar visually but keep functionality */
+     -ms-overflow-style: none;  /* IE and Edge */
+     scrollbar-width: none;  /* Firefox */
+  }
+  .categoriesContainer::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+  }
+  
+  
+  .categoryBadge {
+    font-size: 0.85rem; /* Adjust size */
+    padding: 0.45rem 0.9rem; /* Adjust padding */
     cursor: pointer;
     transition: all 0.2s ease;
-}
-
-.categoryBadge:hover {
+    border: 1px solid transparent; /* Prepare for active state */
+  }
+  .categoryBadge:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.newsContainer {
-    flex: 1;
-    padding: 1rem 2rem;
-    overflow-y: auto;
-    max-height: calc(100vh - 220px);
-}
-
-.noResults {
+    filter: brightness(1.1);
+  }
+  /* Style for the active badge */
+  /* Example using bg-success */
+  .categoryBadge[class*="bg-success"] { /* Target active badge */
+     border: 1px solid #28a745;
+     box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+  }
+  
+  
+  .newsContainer {
+    flex: 1; /* Takes remaining space in the flex column (.content) */
+    padding: 1rem 1.5rem; /* Adjust padding */
+    overflow-y: auto; /* <<<< THE KEY: Allow vertical scrolling ONLY here */
+    /* background-color: lightcoral; */ /* Temp bg for debugging bounds */
+  }
+  
+  /* Scrollbar Styling for News Container */
+  .newsContainer::-webkit-scrollbar {
+    width: 8px;
+  }
+  .newsContainer::-webkit-scrollbar-track {
+    background: #2a2a2a; /* Darker track background */
+    border-radius: 4px;
+  }
+  .newsContainer::-webkit-scrollbar-thumb {
+    background: #555; /* Scrollbar handle color */
+    border-radius: 4px;
+  }
+  .newsContainer::-webkit-scrollbar-thumb:hover {
+    background: #777; /* Lighter handle on hover */
+  }
+  
+  /* Loading / Error / No Results States */
+  .loadingState, .errorState, .noResults {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 4rem 2rem;
+    padding: 3rem 1rem; /* Adjust padding */
     text-align: center;
-    color: #6c757d;
-}
-
-.pagination {
+    color: #aaa; /* Lighter grey for text */
+    height: 100%; /* Try to fill the container */
+    border-radius: 8px;
+    /* background-color: rgba(0, 0, 0, 0.1); */ /* Optional subtle background */
+  }
+  .errorState h3 {
+     color: #dc3545; /* Red for error */
+     margin-bottom: 1rem;
+  }
+  .noResults h3 {
+     color: #ffc107; /* Yellow/Warning color for no results */
+     margin-bottom: 1rem;
+  }
+  .errorState p, .noResults p {
+     margin-bottom: 1.5rem;
+     max-width: 400px; /* Limit text width */
+  }
+  
+  
+  .pagination {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1.5rem;
+    padding: 1rem; /* Adjust padding */
     gap: 0.5rem;
-    background-color: white;
-    border-top: 1px solid #e9ecef;
-}
-
-.paginationButton {
+    background-color: #1f1f1f; /* Dark background for pagination */
+    border-top: 1px solid #333; /* Separator line */
+    color: #ccc;
+    /* Pagination sits below newsContainer, takes its natural height */
+  }
+  
+  .paginationButton {
     border-radius: 20px;
     padding: 0.375rem 1rem;
-}
-
-.paginationBadge {
+    /* Use react-bootstrap Button variants like outline-light */
+  }
+  
+  .paginationBadge {
     width: 32px;
     height: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-}
-
-/* For scrollbar styling */
-.newsContainer::-webkit-scrollbar {
-    width: 8px;
-}
-
-.newsContainer::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.newsContainer::-webkit-scrollbar-thumb {
-    background: #adb5bd;
-    border-radius: 4px;
-}
-
-.newsContainer::-webkit-scrollbar-thumb:hover {
-    background: #6c757d;
-}
-
-@media (max-width: 768px) {
+    border-radius: 50%; /* Make it circular */
+     /* Use react-bootstrap Badge bg prop */
+  }
+  
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .content {
+      /* Allow content column to scroll *if needed* on mobile,
+         as fixed height might be too restrictive. OR keep overflow:hidden
+         if the internal scroll of newsContainer is enough. Test this. */
+      /* overflow: auto; */ /* Uncomment cautiously if needed */
+    }
+  
+    .pageHeader {
+      padding: 0.8rem 1rem 1rem;
+    }
+    .controlsSection {
+       margin-top: 0.8rem;
+    }
+  
     .categoriesWrapper {
-        justify-content: flex-start;
-        margin-top: 1rem;
+      justify-content: flex-start; /* Align left on mobile */
+      margin-top: 0.8rem; /* Add space below search */
     }
-
     .categoriesContainer {
-        justify-content: flex-start;
+      justify-content: flex-start; /* Align left on mobile */
+      /* Ensure horizontal scroll works well */
+      width: 100%;
     }
-
-    .pageTitle {
-        font-size: 2rem;
+  
+    .newsContainer {
+       padding: 0.8rem; /* Reduce padding */
     }
-}
+  
+    .pagination {
+      padding: 0.8rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+     .pageTitle {
+        font-size: 1.6rem;
+     }
+     .pageSubtitle {
+        font-size: 0.85rem;
+     }
+      .searchInput {
+        font-size: 0.9rem;
+     }
+     .categoryBadge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.7rem;
+     }
+  }

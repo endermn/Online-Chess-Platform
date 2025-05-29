@@ -42,6 +42,7 @@ type ActiveSession struct {
 	Player2ID   uint64
 	Player1Conn *websocket.Conn
 	Player2Conn *websocket.Conn
+	Color       string
 }
 
 type GameManager struct {
@@ -140,9 +141,11 @@ func GameHandler(db *gorm.DB) gin.HandlerFunc {
 			var oppositeColor string
 			if colorNum == 0 {
 				color = "white"
+				gameManager.pendingSession.Color = "White"
 				oppositeColor = "black"
 			} else {
 				color = "black"
+				gameManager.pendingSession.Color = "Black"
 				oppositeColor = "white"
 			}
 
@@ -261,7 +264,13 @@ func handleGameCommunication(db *gorm.DB, conn *websocket.Conn, gameID uint64, s
 				log.Printf("Failed to get game: %v", err)
 				return
 			}
-			if msg.Text == "White" {
+			session, exists := gameManager.sessions[sessionID]
+			if !exists {
+				log.Printf("Session %d not found", sessionID)
+				return
+			}
+
+			if msg.Text == session.Color {
 				game.GameState = models.GameStateWin
 			} else {
 				game.GameState = models.GameStateFailure

@@ -1,338 +1,815 @@
 /* home.module.css */
-.homeContainer {
-    background-color: #1a2234;
-    min-height: 100vh;
-    color: #e9ecef;
+
+/* ... Keep all your existing styles ... */
+
+/* --- Styles for Mobile Navigation Toggle --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
+
+.mobileNavToggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1051; /* Higher than Offcanvas backdrop */
+    font-size: 1.25rem; /* Adjust size */
+    padding: 0.3rem 0.6rem; /* Adjust padding */
+    border-radius: 0.25rem;
+    /* Customize colors if needed */
+    /* background-color: rgba(0, 0, 0, 0.5); */
+    /* border: 1px solid rgba(255, 255, 255, 0.3); */
+  }
+  
+  /* --- Styles for the Offcanvas Container --- */
+  .mobileOffcanvas {
+     /* Match your sidebar theme */
+     background: linear-gradient(180deg, #1e2a38 0%, #2c3e50 100%);
+     color: #e9ecef; /* Ensure text is visible */
+     /* Set a specific width for the mobile sidebar */
+     width: 280px !important; /* Use !important cautiously, or increase specificity */
+  }
+  
+  .mobileOffcanvas .offcanvas-header {
+      /* Style header if needed */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobileOffcanvas .offcanvas-title {
+      color: #e9ecef;
+  }
+  
+  /* --- Styles for the Offcanvas Body --- */
+  .mobileOffcanvasBody {
+      padding: 0; /* Remove default padding if NavSidebar has its own */
+      /* Ensure it scrolls if content overflows */
+      overflow-y: auto;
+  }
+  
+  /* Optional: Add padding-top to main content on mobile if header overlaps */
+  /* Only needed if something is fixed at the top */
+  /* @media (max-width: 767.98px) {
+    .mainContent {
+      padding-top: 70px;
+    }
+  } */
+  
+  /* Add styles for loading/error states if not already present */
+  .loadingContainer,
+  .errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    background-color: #1a2234; /* Match background */
+    color: #e9ecef; /* Match text color */
+    padding: 2rem;
+  }
+  
+  .loadingSpinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid #64b5f6; /* Or your theme color */
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .errorContainer h3 {
+      color: #e74c3c; /* Red for errors */
+      margin-bottom: 1rem;
+  }
+  
+  /* Add style for no history message if needed */
+  .noHistory {
+      color: #adb5bd;
+      text-align: center;
+      padding: 2rem;
+  }
+  
+  /* Ensure equal height cards work (if needed) */
+  .equalHeightCard {
+      display: flex;
+      flex-direction: column;
+      height: 100%; /* Make card take full height of Col */
+  }
+  
+  .equalHeightCard .card-body {
+      flex-grow: 1; /* Allow body to grow */
+      display: flex;
+      flex-direction: column;
+  }
+  
+  .equalHeightCard .playButton {
+      margin-top: auto; /* Push button to bottom */
+  }
+  
+  .cardImgOverlayCustom {
+      /* Add styles for title within overlay if needed */
+      padding: 0.5rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%);
+  }
+  
+  .gameCardTitle {
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+  }
+
+  /* Styles for the Offcanvas when it acts as a static sidebar (desktop) */
+.offcanvasStaticDesktop {
+    /* These styles apply ONLY when Offcanvas is static (md breakpoint and up) */
+    /* You might need to adjust the media query based on Bootstrap's 'md' breakpoint */
+    @media (min-width: 768px) { /* Bootstrap 5 'md' breakpoint */
+        /* --- Basic Sidebar Styling --- */
+        position: fixed !important; /* Fix it to the viewport */
+        top: 0;
+        left: 0;
+        height: 100vh; /* Full viewport height */
+        width: 280px; /* SET YOUR DESIRED SIDEBAR WIDTH */
+        z-index: 1000; /* Ensure it's above content but below modals if any */
+        background-color: #212529; /* Example background */
+        border-right: 1px solid #495057; /* Optional border */
+
+        /* --- Override Offcanvas default behavior --- */
+        transform: none !important; /* Prevent any Offcanvas transforms */
+        visibility: visible !important; /* Ensure it's always visible */
+        transition: none !important; /* No transition needed when static */
+
+        /* --- Ensure Offcanvas.Body takes full height --- */
+        /* Select the direct child .offcanvas-body inside the static desktop version */
+        & > .offcanvas-body {
+             height: 100%;
+             padding: 0; /* Remove default Offcanvas padding if NavSidebar handles its own */
+        }
+         /* Hide the header if it wasn't hidden via d-md-none */
+         & > .offcanvas-header {
+            display: none;
+        }
+    }
+}
+
+/* Styles for the main content area to make space for the static sidebar */
+/* In home.module.css or global CSS */
+.mainContentAdjusted {
+    @media (min-width: 768px) { /* Bootstrap 5 'md' breakpoint */
+        margin-left: 280px; /* MUST MATCH THE .offcanvasStaticDesktop width */
+        /* Add this line: */
+        width: calc(100% - 280px); /* Explicitly calculate remaining width */
+        /* Optional: Add padding if needed */
+        /* padding: 1rem; */
+    }
+}
+
+/* Optional: Styles for the hamburger toggle button */
+.mobileNavToggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1040; /* Above content, below Offcanvas backdrop */
+}
+
+/* Optional: Ensure your main content container has appropriate styles */
+.mainContent {
+     padding: 1rem; /* Add some padding */
+     /* background-color: #f8f9fa; */ /* Example background */
+}
+
+/* Ensure the wrapper div doesn't interfere */
+.homePageWrapper {
+    /* Add styles if needed, e.g., min-height */
+}
+
+/* home.module.css */
+
+.homeContainer {
+
+    background-color: #1a2234;
+
+    min-height: 100vh;
+
+    color: #e9ecef;
+
+}
+
 
 .mainContent {
+
     padding: 2rem;
+
     background-color: #232c3d;
+
     min-height: 100vh;
+
     box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+
 }
+
 
 .headerSection {
+
     margin-bottom: 2rem;
+
 }
+
 
 .headerSection h1 {
+
     font-size: 2rem;
+
     font-weight: 600;
+
     margin-bottom: 1.5rem;
+
     color: #e9ecef;
+
 }
+
 
 .statsCards {
+
     display: flex;
+
     gap: 1rem;
+
     margin-bottom: 2rem;
+
     flex-wrap: wrap;
+
 }
+
 
 .statCard {
+
     flex: 1;
+
     min-width: 250px;
+
     background-color: #2c374a;
+
     border: none;
+
     border-radius: 10px;
+
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
     transition: transform 0.2s;
+
 }
+
 
 .statCard:hover {
+
     transform: translateY(-5px);
+
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+
 }
+
 
 .statCard .card-body {
+
     display: flex;
+
     align-items: center;
+
     padding: 1.25rem;
+
 }
+
 
 .statIcon {
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     width: 48px;
+
     height: 48px;
+
     border-radius: 12px;
+
     margin-right: 1rem;
+
     background-color: #3a4458;
+
     color: #64b5f6;
+
 }
+
 
 .statInfo {
+
     flex: 1;
+
 }
+
 
 .statInfo h3 {
+
     font-size: 0.875rem;
+
     color: #adb5bd;
+
     margin-bottom: 0.5rem;
+
 }
+
 
 .statInfo h2 {
+
     font-size: 1.5rem;
+
     font-weight: 700;
+
     margin-bottom: 0.5rem;
+
     color: #e9ecef;
+
 }
+
 
 .winRateProgress {
+
     height: 6px;
+
     background-color: #3a4458;
+
 }
+
 
 .miniStats {
+
     display: flex;
+
     gap: 0.5rem;
+
 }
+
 
 .gameModes {
+
     margin-bottom: 2rem;
+
 }
+
 
 .gameModes h2 {
+
     font-size: 1.5rem;
+
     font-weight: 600;
+
     margin-bottom: 1.25rem;
+
     color: #e9ecef;
+
 }
+
 
 .gameCard {
+
     background-color: #2c374a;
+
     border: none;
+
     border-radius: 10px;
+
     overflow: hidden;
+
     margin-bottom: 1.5rem;
+
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
     transition: transform 0.3s, box-shadow 0.3s;
+
     height: 100%;
+
 }
+
 
 .gameCard:hover {
+
     transform: translateY(-8px);
+
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+
 }
+
 
 .gameCardImageContainer {
+
     position: relative;
+
     height: 120px;
+
     overflow: hidden;
+
 }
+
 
 .gameCardImage {
+
     width: 100%;
+
     height: 100%;
+
     object-fit: cover;
+
     transition: transform 0.3s;
+
 }
+
 
 .gameCard:hover .gameCardImage {
+
     transform: scale(1.1);
+
 }
+
 
 .gameCardOverlay {
+
     position: absolute;
+
     top: 0;
+
     left: 0;
+
     width: 100%;
+
     height: 100%;
+
     background-color: rgba(0, 0, 0, 0.2);
+
 }
+
 
 .gameCardHeader {
+
     display: flex;
+
     align-items: center;
+
     margin-bottom: 0.75rem;
+
 }
+
 
 .gameTypeIcon {
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     width: 36px;
+
     height: 36px;
+
     border-radius: 8px;
+
     margin-right: 0.75rem;
+
     color: white;
+
 }
+
 
 .gameTypeDescription {
+
     color: #adb5bd;
+
     font-size: 0.875rem;
+
     margin-bottom: 1rem;
+
 }
+
 
 .ratingBadge {
+
     background-color: #3a4458;
+
     border-radius: 4px;
+
     padding: 0.25rem 0.5rem;
+
     font-size: 0.875rem;
+
     display: inline-block;
+
     margin-bottom: 1rem;
+
     color: #e9ecef;
+
 }
+
 
 .playButton {
+
     width: 100%;
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     padding: 0.5rem 1rem;
+
     transition: opacity 0.2s;
+
     border: none;
+
 }
+
 
 .playButton:hover {
+
     opacity: 0.9;
+
 }
+
 
 .historySection {
+
     margin-top: 2rem;
+
 }
+
 
 .historyHeader {
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     margin-bottom: 1.25rem;
+
 }
+
 
 .historyHeader h2 {
+
     font-size: 1.5rem;
+
     font-weight: 600;
+
     color: #e9ecef;
+
     margin-bottom: 0;
+
 }
+
 
 .historyContainer {
+
     max-height: 500px;
+
     overflow-y: auto;
+
     padding-right: 0.5rem;
+
 }
+
 
 .historyContainer::-webkit-scrollbar {
+
     width: 6px;
+
 }
+
 
 .historyContainer::-webkit-scrollbar-track {
+
     background: #3a4458;
+
     border-radius: 10px;
+
 }
+
 
 .historyContainer::-webkit-scrollbar-thumb {
+
     background: #64b5f6;
+
     border-radius: 10px;
+
 }
+
 
 /* historyCard.module.css */
+
 .historyCard {
+
     background-color: #2c374a;
+
     border: none;
+
     border-radius: 10px;
+
     margin-bottom: 1rem;
+
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
     transition: transform 0.2s, box-shadow 0.2s;
+
 }
+
 
 .historyCard:hover {
+
     transform: translateY(-3px);
+
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
 }
+
 
 .cardContent {
+
     display: flex;
+
     align-items: center;
+
 }
+
 
 .resultIndicator {
+
     width: 6px;
+
     height: 60px;
+
     border-radius: 3px;
+
     margin-right: 1rem;
+
 }
+
 
 .gameInfo {
+
     flex: 1;
+
 }
+
 
 .gameHeader {
+
     display: flex;
+
     align-items: center;
+
     margin-bottom: 0.5rem;
+
     flex-wrap: wrap;
+
     gap: 0.75rem;
+
 }
+
 
 .resultBadge {
+
     font-weight: 600;
+
     font-size: 0.75rem;
+
     padding: 0.35rem 0.65rem;
+
     border-radius: 4px;
+
 }
+
 
 .gameType {
+
     color: #adb5bd;
+
     font-size: 0.875rem;
+
 }
+
 
 .gameDate {
+
     margin-left: auto;
+
     color: #adb5bd;
+
     font-size: 0.875rem;
+
 }
+
 
 .gameDetails {
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
 }
+
 
 .playerInfo {
+
     display: flex;
+
     align-items: center;
+
     gap: 0.5rem;
+
     color: #e9ecef;
+
 }
+
 
 .opponentName {
+
     font-weight: 500;
+
 }
+
 
 .gameStats {
+
     display: flex;
+
     gap: 1rem;
+
 }
+
 
 .statItem {
+
     display: flex;
+
     align-items: center;
+
     gap: 0.5rem;
+
     color: #adb5bd;
+
     font-size: 0.875rem;
+
 }
+
 
 .ratingChange {
+
     font-weight: 600;
+
 }
+
 
 .viewButton {
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     width: 32px;
+
     height: 32px;
+
     border-radius: 50%;
+
     background-color: #3a4458;
+
     color: #adb5bd;
+
     cursor: pointer;
+
     transition: background-color 0.2s, color 0.2s;
+
 }
 
+
 .viewButton:hover {
+
     background-color: #64b5f6;
+
     color: white;
-}
+
+} 
