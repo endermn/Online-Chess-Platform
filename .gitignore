@@ -1,5 +1,7 @@
-*.env
+.env
+Makefile
 .DS_Store
 private.pem
 .vscode
 *.zst
+node_modules/
